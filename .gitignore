@@ -1,0 +1,29 @@
+# Java
+backend/target/
+backend/data/
+backend/uploads/
+
+# Python
+ai/.venv/
+ai/__pycache__/
+ai/**/__pycache__/
+ai/.pytest_cache/
+ai/data/chroma/
+
+# React
+frontend/node_modules/
+frontend/dist/
+
+# Local build tools downloaded only for verification
+tools/
+
+# IDE / secrets
+.agents/
+.pytest_cache/
+.idea/
+.vscode/
+*.iml
+.env
+**/.env
+!.env.example
+**/.env.example
