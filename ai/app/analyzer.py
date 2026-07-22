@@ -45,7 +45,21 @@ REQUIRED_SECTIONS = [
 
 
 def _context(text: str, start: int, end: int, radius: int = 70) -> str:
-    return text[max(0, start - radius): min(len(text), end + radius)].replace("\n", " ").strip()
+    line_start = text.rfind("\n", max(0, start - 300), start)
+    line_end = text.find("\n", end, min(len(text), end + 300))
+    if line_start >= 0 and line_end >= 0:
+        line = text[line_start + 1:line_end].strip()
+        if re.match(r"제\s*\d+\s*조", line):
+            next_end = text.find("\n", line_end + 1, min(len(text), line_end + 500))
+            if next_end >= 0:
+                return f"{line} {text[line_end + 1:next_end].strip()}"
+        return line
+    sentence_start = max(text.rfind(mark, max(0, start - radius), start) for mark in (".", "다.", "요."))
+    sentence_end_candidates = [text.find(mark, end, min(len(text), end + radius)) for mark in (".", "다.", "요.")]
+    sentence_end_candidates = [value for value in sentence_end_candidates if value >= 0]
+    from_index = sentence_start + 1 if sentence_start >= 0 else max(0, start - radius)
+    to_index = min(sentence_end_candidates) + 1 if sentence_end_candidates else min(len(text), end + radius)
+    return re.sub(r"\s+", " ", text[from_index:to_index]).strip()
 
 
 def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:

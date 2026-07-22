@@ -36,6 +36,25 @@ class FakeLlm:
         return FakeStructuredLlm()
 
 
+class EnglishStructuredLlm:
+    def invoke(self, messages):
+        return LlmDecision.model_validate({
+            "summary": "This contract contains risky clauses.",
+            "overall_risk_level": "HIGH", "overall_score": 80,
+            "clauses": [{
+                "clause_type": "DAMAGES", "title": "Penalty",
+                "original_text": "퇴사 시 위약금을 지급한다.", "risk_level": "HIGH",
+                "reason": "The worker must pay a penalty.",
+                "recommendation": "Remove this clause.", "evidence_ids": [],
+            }],
+        })
+
+
+class EnglishLlm:
+    def with_structured_output(self, schema):
+        return EnglishStructuredLlm()
+
+
 def test_graph_falls_back_when_llm_is_disabled(monkeypatch):
     monkeypatch.setenv("LAWZIC_LLM_ENABLED", "false")
     result = ContractAnalysisAgent(FakeRag()).analyze(
@@ -55,3 +74,13 @@ def test_graph_uses_llm_and_only_accepts_retrieved_evidence(monkeypatch):
     assert result.clauses[0].legal_references[0].article_number == "제20조"
     assert len(result.clauses[0].legal_references) == 1
     assert "LangGraph Agent" in result.warnings[0]
+
+
+def test_graph_rejects_english_llm_output(monkeypatch):
+    monkeypatch.setenv("LAWZIC_LLM_ENABLED", "true")
+    monkeypatch.setattr(ContractAnalysisAgent, "_llm", staticmethod(lambda: EnglishLlm()))
+    result = ContractAnalysisAgent(FakeRag()).analyze(
+        3, "근로자는 임금을 받으며 퇴사 시 위약금을 지급한다. 근로시간은 09시부터 18시까지다."
+    )
+    assert "한국어 출력 형식" in result.warnings[0]
+    assert "This" not in result.summary

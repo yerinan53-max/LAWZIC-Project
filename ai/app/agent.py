@@ -41,6 +41,8 @@ class AgentState(TypedDict, total=False):
 
 SYSTEM_PROMPT = """당신은 LAWZIC의 계약서 위험 분석 AI입니다.
 계약서와 검색된 법령 근거만 사용해 분석하세요.
+- summary, title, reason, recommendation 등 사용자가 읽는 모든 문장은 반드시 한국어로만 작성하세요.
+- 영어 문장이나 영어 제목을 절대 출력하지 마세요. clause_type 코드만 영문 대문자로 작성하세요.
 - 계약서에 없는 문구를 인용하지 마세요.
 - 법령 근거는 제공된 evidence_id만 선택하세요. 근거가 없으면 빈 배열로 두세요.
 - 불리하거나 모호한 조항, 필수 조건 누락 가능성을 찾으세요.
@@ -131,9 +133,17 @@ class ContractAnalysisAgent:
 위 자료를 비교하여 계약서를 구조적으로 분석하세요."""
         try:
             structured_llm = self._llm().with_structured_output(LlmDecision)
-            return {"llm_decision": structured_llm.invoke([
+            decision = structured_llm.invoke([
                 ("system", SYSTEM_PROMPT), ("human", prompt)
-            ])}
+            ])
+            if not _is_korean_decision(decision):
+                decision = structured_llm.invoke([
+                    ("system", SYSTEM_PROMPT),
+                    ("human", "이전 응답에 영어가 포함되어 사용할 수 없습니다. 모든 설명과 제목을 반드시 한국어로 작성하세요.\n\n" + prompt),
+                ])
+            if not _is_korean_decision(decision):
+                return {"llm_error": "LLM이 한국어 출력 형식을 지키지 않아 한국어 규칙 분석으로 전환했습니다."}
+            return {"llm_decision": decision}
         except Exception as exc:
             return {"llm_error": f"LLM 분석 실패: {exc}"}
 
@@ -195,6 +205,21 @@ def _to_reference(item: dict) -> LegalReference:
     return LegalReference(
         law_name=item["law_name"], article_number=item["article_number"],
         content=item["content"], source_url=item.get("source_url"),
+    )
+
+
+def _is_korean_text(value: str, minimum: int = 2) -> bool:
+    return len(re.findall(r"[가-힣]", value)) >= minimum
+
+
+def _is_korean_decision(decision: LlmDecision) -> bool:
+    if not _is_korean_text(decision.summary, 8):
+        return False
+    return all(
+        _is_korean_text(item.title)
+        and _is_korean_text(item.reason, 5)
+        and _is_korean_text(item.recommendation, 5)
+        for item in decision.clauses
     )
 
 
