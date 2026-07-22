@@ -50,6 +50,32 @@ python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
+### LangGraph Agent + Ollama LLM
+
+AI 서버는 다음 순서의 LangGraph 워크플로로 계약서를 분석합니다.
+
+```text
+규칙 기반 사전 분석 → ChromaDB 법령 검색 → LLM 조건 분기
+→ Ollama 구조화 위험 분석 → 검색 근거 검증 → 최종 리포트
+```
+
+기본 LLM은 로컬 `gemma2:2b`입니다. Ollama를 실행하고 모델을 준비하세요.
+
+```powershell
+ollama pull gemma2:2b
+ollama serve
+```
+
+다른 모델을 사용하거나 LLM을 잠시 끄려면 AI 서버 실행 전에 설정합니다.
+
+```powershell
+$env:OLLAMA_MODEL="gemma2:9b"
+$env:OLLAMA_BASE_URL="http://localhost:11434"
+$env:LAWZIC_LLM_ENABLED="true"
+```
+
+LLM 또는 Ollama 호출에 실패하면 서비스가 중단되지 않고 규칙 기반 분석 결과로 자동 전환됩니다.
+
 확인 주소: `http://localhost:8000/docs`, `http://localhost:8000/health`
 
 ### 법령 Vector DB 다시 만들기

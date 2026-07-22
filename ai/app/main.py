@@ -1,12 +1,15 @@
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 
-from .analyzer import analyze_contract
+from starlette.concurrency import run_in_threadpool
+
+from .agent import ContractAnalysisAgent
 from .pdf_service import PdfReadError, extract_text
 from .rag import LawRagService
-from .schemas import AnalysisResponse, LegalReference
+from .schemas import AnalysisResponse
 
 app = FastAPI(title="LAWZIC API", version="0.1.0")
 rag = LawRagService()
+agent = ContractAnalysisAgent(rag)
 
 
 @app.get("/health")
@@ -33,21 +36,4 @@ async def analyze(contract_id: int = Form(...), file: UploadFile = File(...)) ->
         text = extract_text(content)
     except PdfReadError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    result = analyze_contract(contract_id, text)
-    try:
-        for clause in result.clauses:
-            query = f"{clause.title} {clause.original_text} {clause.reason}"
-            matches = rag.search(query, top_k=2)
-            clause.legal_references = [
-                LegalReference(
-                    law_name=match["law_name"],
-                    article_number=match["article_number"],
-                    content=match["content"],
-                    source_url=match.get("source_url"),
-                )
-                for match in matches
-            ]
-        result.warnings[0] = "규칙 기반 위험 탐지와 Vector DB 법령 검색을 결합한 MVP 결과입니다."
-    except Exception as exc:
-        result.warnings.append(f"법령 RAG 검색을 완료하지 못했습니다: {exc}")
-    return result
+    return await run_in_threadpool(agent.analyze, contract_id, text)

@@ -81,11 +81,14 @@ class LawRagService:
         candidate_count = min(collection.count(), max(top_k * 3, 10))
         result = collection.query(query_texts=[query], n_results=candidate_count)
         matches = []
-        for document, metadata, distance in zip(result["documents"][0], result["metadatas"][0], result["distances"][0]):
+        for evidence_id, document, metadata, distance in zip(
+            result["ids"][0], result["documents"][0], result["metadatas"][0], result["distances"][0]
+        ):
             similarity = max(0.0, 1.0 - float(distance))
             keyword_hits = sum(1 for keyword in metadata.get("keywords", "").split("|") if keyword and keyword in query)
             hybrid_score = similarity + min(0.3, keyword_hits * 0.15)
-            matches.append({**metadata, "content": document, "distance": round(float(distance), 4),
+            matches.append({"evidence_id": evidence_id, **metadata, "content": document,
+                            "distance": round(float(distance), 4),
                             "similarity": round(similarity, 4), "hybrid_score": round(hybrid_score, 4)})
         matches.sort(key=lambda match: match["hybrid_score"], reverse=True)
         return matches[:top_k]
