@@ -43,5 +43,4 @@ public class Contract {
     public void markProcessing() { status = Status.PROCESSING; }
     public void markCompleted() { status = Status.COMPLETED; }
     public void markFailed() { status = Status.FAILED; }
-    public void markUploaded() { status = Status.UPLOADED; }
 }

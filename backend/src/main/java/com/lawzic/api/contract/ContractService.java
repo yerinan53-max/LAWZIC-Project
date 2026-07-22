@@ -1,11 +1,13 @@
 package com.lawzic.api.contract;
 
+import com.lawzic.api.analysis.AnalysisResultRepository;
 import com.lawzic.api.user.User;
 import com.lawzic.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContractService {
     private final ContractRepository contracts;
+    private final AnalysisResultRepository analysisResults;
     private final UserRepository users;
     @Value("${app.upload-dir}") private String uploadDir;
 
@@ -44,6 +47,30 @@ public class ContractService {
     public Contract owned(Long id, String email) {
         return contracts.findByIdAndUserEmail(id, email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계약서를 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public void delete(Long id, String email) {
+        Contract contract = owned(id, email);
+        if (contract.getStatus() == Contract.Status.PROCESSING) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "분석 중인 계약서는 삭제할 수 없습니다.");
+        }
+
+        Path uploadRoot = Path.of(uploadDir).toAbsolutePath().normalize();
+        Path storedFile = Path.of(contract.getFilePath()).toAbsolutePath().normalize();
+        if (!storedFile.startsWith(uploadRoot)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "저장 파일 경로가 안전하지 않습니다.");
+        }
+
+        try {
+            Files.deleteIfExists(storedFile);
+        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "계약서 파일 삭제에 실패했습니다.");
+        }
+
+        analysisResults.findByContractId(id).ifPresent(analysisResults::delete);
+        analysisResults.flush();
+        contracts.delete(contract);
     }
 
     private void validatePdf(MultipartFile file) {

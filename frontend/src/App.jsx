@@ -117,13 +117,16 @@ function Dashboard({ user, onLogout }) {
         }
   };
 
-  const deleteAnalysis = async (contract) => {
-    if (!window.confirm(`'${contract.filename}'의 분석 결과를 삭제할까요? PDF 파일은 유지됩니다.`)) return;
+  const deleteContract = async (contract) => {
+    if (!window.confirm(`'${contract.filename}' 계약서를 삭제할까요? PDF 파일과 분석 결과가 모두 삭제됩니다.`)) return;
     setBusy(true);
     setError("");
     try {
-      await api(`/contracts/${contract.id}/analysis`, {method:"DELETE"});
-      if (selected?.id === contract.id) setResult(null);
+      await api(`/contracts/${contract.id}`, {method:"DELETE"});
+      if (selected?.id === contract.id) {
+        setSelected(null);
+        setResult(null);
+      }
       await load();
     } catch (e) {
       setError(e.message);
@@ -134,7 +137,7 @@ function Dashboard({ user, onLogout }) {
 
   return <div className="app-shell"><header><div><p className="brand-logo">LAW<span>Z</span>IC</p><h2>계약서 분석실</h2></div><div className="user"><span>{user?.name ?? user?.email}님</span><button className="secondary" onClick={onLogout}>로그아웃</button></div></header>
     <main className="grid"><section className="card upload"><h3>계약서 업로드</h3><p className="muted">현재 MVP는 근로계약서를 분석합니다. 텍스트가 포함된 10MB 이하 PDF를 선택하세요.</p><label className="upload-button">{busy ? "처리 중…" : "PDF 선택"}<input hidden type="file" accept="application/pdf,.pdf" onChange={upload} disabled={busy}/></label>{error && <p className="error">{error}</p>}</section>
-    <section className="card list"><h3>분석 이력</h3>{contracts.length === 0 ? <p className="empty">업로드한 계약서가 없습니다.</p> : contracts.map(c => <article className="contract" key={c.id}><div><strong>{c.filename}</strong><small>{new Date(c.uploadedAt).toLocaleString("ko-KR")} · {c.status}</small></div><div className="contract-actions"><button onClick={() => analyze(c)} disabled={busy}>{c.status === "COMPLETED" ? "재분석" : "분석"}</button>{c.status === "COMPLETED" && <button className="danger-outline" onClick={() => deleteAnalysis(c)} disabled={busy}>이력 삭제</button>}</div></article>)}</section>
+    <section className="card list"><h3>분석 이력</h3>{contracts.length === 0 ? <p className="empty">업로드한 계약서가 없습니다.</p> : contracts.map(c => <article className="contract" key={c.id}><div><strong>{c.filename}</strong><small>{new Date(c.uploadedAt).toLocaleString("ko-KR")} · {c.status}</small></div><div className="contract-actions"><button onClick={() => analyze(c)} disabled={busy}>{c.status === "COMPLETED" ? "재분석" : "분석"}</button><button className="danger-outline" onClick={() => deleteContract(c)} disabled={busy || c.status === "PROCESSING"}>계약서 삭제</button></div></article>)}</section>
     <section className="card result"><h3>{selected ? `${selected.filename} 분석 결과` : "분석 결과"}</h3>{!result ? <p className="empty">계약서를 선택해 분석하면 여기에 결과가 표시됩니다.</p> : <><div className={`score ${result.overall_risk_level.toLowerCase()}`}><span>종합 위험도</span><strong>{result.overall_risk_level} · {result.overall_score}점</strong></div><h4>요약</h4><p>{result.summary}</p><h4>확인할 조항</h4>{result.clauses.length === 0 ? <p>탐지된 항목이 없습니다.</p> : result.clauses.map((c,i) => <article className="finding" key={i}><div><span className={`badge ${c.risk_level.toLowerCase()}`}>{c.risk_level}</span><strong>{c.title}</strong></div><blockquote>{c.original_text}</blockquote><p>{c.reason}</p><p className="recommend">권고: {c.recommendation}</p>{c.legal_references.map((r,j)=><small key={j}>{r.source_url ? <a href={r.source_url} target="_blank" rel="noreferrer">{r.law_name} {r.article_number} 공식 원문</a> : `${r.law_name} ${r.article_number}`}</small>)}</article>)}<div className="warning">{result.warnings.join(" ")}</div></>}</section></main></div>;
 }
 

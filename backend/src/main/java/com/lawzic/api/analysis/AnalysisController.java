@@ -25,12 +25,6 @@ public class AnalysisController {
         return analysisService.result(contractId, principal.getName());
     }
 
-    @DeleteMapping
-    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long contractId, Principal principal) {
-        analysisService.delete(contractId, principal.getName());
-    }
-
     @GetMapping("/status")
     public ContractResponse status(@PathVariable Long contractId, Principal principal) {
         return ContractResponse.from(contractService.owned(contractId, principal.getName()));

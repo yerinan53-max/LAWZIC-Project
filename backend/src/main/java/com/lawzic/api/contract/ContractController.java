@@ -31,4 +31,10 @@ public class ContractController {
     public ContractResponse get(@PathVariable Long id, Principal principal) {
         return ContractResponse.from(service.owned(id, principal.getName()));
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id, Principal principal) {
+        service.delete(id, principal.getName());
+    }
 }
