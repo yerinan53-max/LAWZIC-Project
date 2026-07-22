@@ -49,4 +49,12 @@ public class AnalysisService {
         try { return objectMapper.readTree(json); }
         catch (JsonProcessingException ex) { throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "저장된 결과를 읽을 수 없습니다."); }
     }
+
+    @Transactional
+    public void delete(Long contractId, String email) {
+        Contract contract = contractService.owned(contractId, email);
+        results.findByContractId(contractId).ifPresent(results::delete);
+        contract.markUploaded();
+        contracts.save(contract);
+    }
 }

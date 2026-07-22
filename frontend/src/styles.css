@@ -186,6 +186,10 @@ header h2 { margin-bottom: 0; }
 .contract { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-top: 1px solid #ebe7de; }
 .contract strong { color: var(--primary); }
 .contract small { display: block; color: var(--muted); }
+.contract-actions { display: flex; align-items: center; gap: .45rem; }
+.contract-actions button { padding: .55rem .7rem; white-space: nowrap; }
+.danger-outline { color: var(--danger); background: transparent; border-color: #d9aeb6; }
+.danger-outline:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
 
 .score {
   display: flex;
