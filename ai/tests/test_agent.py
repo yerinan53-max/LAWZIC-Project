@@ -84,3 +84,19 @@ def test_graph_rejects_english_llm_output(monkeypatch):
     )
     assert "한국어 출력 형식" in result.warnings[0]
     assert "This" not in result.summary
+
+
+def test_clause_decision_uses_default_when_recommendation_is_truncated():
+    decision = LlmDecision.model_validate({
+        "summary": "위험 조항이 여러 개 포함된 근로계약서입니다.",
+        "overall_risk_level": "HIGH",
+        "overall_score": 90,
+        "clauses": [{
+            "clause_type": "OVERTIME",
+            "title": "연장근로",
+            "original_text": "추가 근무는 무급으로 한다.",
+            "risk_level": "HIGH",
+            "reason": "연장근로수당이 지급되지 않을 위험이 있습니다.",
+        }],
+    })
+    assert "다시 검토" in decision.clauses[0].recommendation

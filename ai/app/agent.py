@@ -17,7 +17,7 @@ class ClauseDecision(BaseModel):
     original_text: str = Field(description="계약서에 실제로 존재하는 문구. 누락이면 '해당 조항 없음'")
     risk_level: RiskLevel
     reason: str
-    recommendation: str
+    recommendation: str = "해당 조항을 원문 및 관련 법령과 함께 다시 검토하세요."
     evidence_ids: list[str] = Field(default_factory=list)
 
 
@@ -46,6 +46,7 @@ SYSTEM_PROMPT = """당신은 LAWZIC의 계약서 위험 분석 AI입니다.
 - 계약서에 없는 문구를 인용하지 마세요.
 - 법령 근거는 제공된 evidence_id만 선택하세요. 근거가 없으면 빈 배열로 두세요.
 - 불리하거나 모호한 조항, 필수 조건 누락 가능성을 찾으세요.
+- 가장 중요한 위험 조항만 최대 6개 작성하고, 이유와 권고는 각각 한 문장으로 간결하게 작성하세요.
 - 위험도는 HIGH, MEDIUM, LOW, SAFE 중 하나로 작성하세요.
 - 법률 자문처럼 단정하지 말고 검토 필요성과 이유를 설명하세요.
 - 전체 위험 점수는 0~100입니다.
@@ -114,7 +115,7 @@ class ContractAnalysisAgent:
             model=os.getenv("OLLAMA_MODEL", "gemma2:2b"),
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             temperature=0,
-            num_predict=1024,
+            num_predict=1280,
         )
 
     def _llm_analyze(self, state: AgentState) -> dict:
