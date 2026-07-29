@@ -89,7 +89,8 @@ public class OAuthLoginService {
         if (!termsAgreed || !privacyAgreed) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "필수 약관에 모두 동의해야 가입할 수 있습니다.");
         }
-        User user = users.save(User.social(ticket.getEmail(), ticket.getName()));
+        String internalPasswordHash = passwordEncoder.encode(randomToken());
+        User user = users.save(User.social(ticket.getEmail(), ticket.getName(), internalPasswordHash));
         user.recordRequiredConsents(AuthController.TERMS_VERSION, AuthController.PRIVACY_VERSION);
         identities.save(new SocialIdentity(user, ticket.getProvider(), ticket.getProviderUserId()));
         ticket.attach(user);

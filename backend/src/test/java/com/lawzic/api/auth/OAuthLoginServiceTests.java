@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -54,5 +55,22 @@ class OAuthLoginServiceTests {
         verify(tickets).save(captor.capture());
         assertTrue(captor.getValue().isLinkingRequired());
         assertNull(captor.getValue().getUser());
+    }
+
+    @Test
+    void socialRegistrationStoresUnusableNonNullPasswordHashForExistingSchema() {
+        OAuthLoginTicket ticket = new OAuthLoginTicket(
+                "ticket-hash", "google", "subject", "new@example.com", "새 사용자",
+                null, false, true, Instant.now().plusSeconds(60));
+        when(tickets.findByTokenHash(anyString())).thenReturn(Optional.of(ticket));
+        when(passwordEncoder.encode(anyString())).thenReturn("bcrypt-random-internal-password");
+        when(users.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        OAuthLoginService service = new OAuthLoginService(users, identities, tickets, passwordEncoder);
+
+        User registered = service.register("raw-ticket", true, true);
+
+        assertEquals("bcrypt-random-internal-password", registered.getPasswordHash());
+        assertNotNull(registered.getPasswordHash());
+        verify(identities).save(any(SocialIdentity.class));
     }
 }
