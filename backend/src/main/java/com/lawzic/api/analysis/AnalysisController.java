@@ -5,6 +5,12 @@ import com.lawzic.api.contract.ContractDtos.ContractResponse;
 import com.lawzic.api.contract.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.nio.charset.StandardCharsets;
 
 import java.security.Principal;
 
@@ -16,8 +22,14 @@ public class AnalysisController {
     private final ContractService contractService;
 
     @PostMapping
-    public JsonNode analyze(@PathVariable Long contractId, Principal principal) {
-        return analysisService.analyze(contractId, principal.getName());
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ContractResponse analyze(@PathVariable Long contractId, Principal principal) {
+        return ContractResponse.from(analysisService.start(contractId, principal.getName()));
+    }
+
+    @PostMapping("/cancel")
+    public ContractResponse cancel(@PathVariable Long contractId, Principal principal) {
+        return ContractResponse.from(analysisService.cancel(contractId, principal.getName()));
     }
 
     @GetMapping
@@ -28,5 +40,23 @@ public class AnalysisController {
     @GetMapping("/status")
     public ContractResponse status(@PathVariable Long contractId, Principal principal) {
         return ContractResponse.from(contractService.owned(contractId, principal.getName()));
+    }
+
+    public record QuestionRequest(String question) {}
+
+    @PostMapping("/questions")
+    public JsonNode question(@PathVariable Long contractId, @RequestBody QuestionRequest request, Principal principal) {
+        return analysisService.question(contractId, principal.getName(), request.question());
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<byte[]> report(@PathVariable Long contractId, Principal principal) {
+        byte[] content = analysisService.report(contractId, principal.getName());
+        ContentDisposition disposition = ContentDisposition.attachment()
+                .filename("LAWZIC-analysis-report.pdf", StandardCharsets.UTF_8).build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(content);
     }
 }

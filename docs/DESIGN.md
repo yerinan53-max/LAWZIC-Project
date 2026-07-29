@@ -6,7 +6,7 @@
 |---|---|
 | React | 입력, 업로드, 분석 결과 표현 |
 | Spring Boot | 인증, 권한, 계약서 메타데이터, AI 서버 연동, 결과 저장 |
-| FastAPI | PDF 처리, 분석 규칙, 추후 RAG·LLM·LangGraph |
+| FastAPI | PDF 처리, 의미 기반 위험 분석, RAG·LLM·LangGraph |
 | H2/MySQL | 사용자, 계약서, 분석 결과 |
 
 ## 데이터 관계
@@ -42,23 +42,35 @@ contracts 1 ── 0..1 analysis_results
 - 저장 파일명은 UUID로 바꾸고 원래 이름과 분리합니다.
 - FastAPI는 공개 사용자 인증을 담당하지 않습니다. 배포 시 내부 네트워크 또는 내부 토큰 검증을 추가해야 합니다.
 
-## 현재 한계
-
-- 분석 호출이 동기 방식이어서 큰 문서나 LLM 호출에는 적합하지 않습니다.
-- 규칙 기반 결과이며 법령 원문 Vector DB 검색은 아직 없습니다.
-- OCR, Refresh Token, 로그아웃 토큰 폐기, 파일 악성코드 검사는 후속 범위입니다.
-- 위험도 점수는 법적 확률이 아니라 화면 정렬을 위한 설명 가능한 가중치입니다.
-
-## RAG 추가 위치
-
-`ai/app/analyzer.py`를 다음 단위로 분리합니다.
+## 의미 기반 분석 파이프라인
 
 ```text
-extract_contract_clauses(text)
-rule_scan(clauses)
-retrieve_laws(clause, vector_store)
-llm_analyze(clause, retrieved_laws)
-aggregate_results(findings)
+PDF 텍스트 추출
+→ 제N조 기준 조항 분리
+→ 규칙으로 위험 후보 생성
+→ 주체·행위·대상·조건·부정 여부 추출
+→ 안전한 부정문 제거
+→ 의미 요소 충족도 기반 신뢰도 계산
+→ ChromaDB 법령 검색 및 LLM 분석
+→ 규칙 결과와 LLM 결과 상호검증
+→ 위험 / 검토 필요 / 정상 결과 통합
 ```
 
-Vector DB 메타데이터에는 최소한 `law_name`, `article_number`, `effective_date`, `source_url`, `text`를 저장합니다. 법령은 글자 수가 아니라 조·항 단위로 나누는 것을 권장합니다.
+규칙과 의미 구조가 모두 확인된 항목만 확정 위험으로 표시합니다. LLM만 탐지했거나
+주체·행위·대상이 충분히 확인되지 않는 항목은 `review_required=true`와 함께 `검토 필요`로
+표시하고 위험 점수 반영 비중을 낮춥니다. `공제하지 않는다`처럼 위험 행위를 금지하는 문장은
+부정문 검증 단계에서 제외합니다.
+
+정상·위험 표현 데이터는 `ai/tests/data/semantic_contract_cases.json`에 누적합니다. 새로운
+표현에서 오탐 또는 미탐이 발견되면 개별 계약서에만 맞춘 코드를 추가하지 않고 데이터셋 사례와
+의미 추출 규칙을 함께 보완합니다. 분류 모델 파인튜닝은 충분한 검수 데이터가 축적된 후 별도
+평가셋을 분리해 진행합니다.
+
+## 배포 전 남은 한계
+
+- 스캔 이미지 PDF용 OCR
+- Refresh Token과 로그아웃 토큰 폐기
+- 업로드 파일 악성코드 검사
+- 법령 데이터 자동 갱신 및 시행일 버전 관리
+- 운영 환경의 작업 큐와 다중 인스턴스 분석 취소 동기화
+- 위험도 점수는 법적 확률이 아니라 설명 가능한 우선순위 점수임

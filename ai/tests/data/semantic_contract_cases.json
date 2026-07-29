@@ -1,0 +1,62 @@
+[
+  {
+    "id": "safe_deduction_prohibition",
+    "text": "회사는 확정되지 않은 손해액을 임금에서 임의로 공제하지 않는다.",
+    "expected": [],
+    "absent": ["ARBITRARY_WAGE_DEDUCTION", "DAMAGE_WAGE_DEDUCTION"]
+  },
+  {
+    "id": "safe_deduction_impossible",
+    "text": "사용자는 근로자의 임금을 손해배상액 명목으로 차감할 수 없다.",
+    "expected": [],
+    "absent": ["DAMAGE_WAGE_DEDUCTION"]
+  },
+  {
+    "id": "risk_arbitrary_deduction",
+    "text": "회사 물품 손상 시 회사가 정한 금액을 임금에서 사전 통보 없이 공제한다.",
+    "expected": ["ARBITRARY_WAGE_DEDUCTION"],
+    "absent": []
+  },
+  {
+    "id": "risk_damage_deduction",
+    "text": "손해가 발생하면 회사는 손해배상액을 근로자의 임금에서 공제할 수 있다.",
+    "expected": ["DAMAGE_WAGE_DEDUCTION"],
+    "absent": []
+  },
+  {
+    "id": "risk_break_denial",
+    "text": "휴게시간은 회사 사정에 따라 생략할 수 있다.",
+    "expected": ["BREAK_DENIAL"],
+    "absent": []
+  },
+  {
+    "id": "risk_unpaid_overtime",
+    "text": "추가 근무는 무급이며 별도 수당은 지급하지 않는다.",
+    "expected": ["UNPAID_OVERTIME"],
+    "absent": []
+  },
+  {
+    "id": "risk_annual_leave_waiver",
+    "text": "근로자는 연차 유급휴가를 사용하지 않으며 미사용 연차수당도 청구하지 않는다.",
+    "expected": ["ANNUAL_LEAVE_WAIVER"],
+    "absent": []
+  },
+  {
+    "id": "risk_severance_nonpayment",
+    "text": "퇴직금은 월 급여에 포함하며 회사는 별도로 지급하지 않는다.",
+    "expected": ["SEVERANCE_NONPAYMENT"],
+    "absent": []
+  },
+  {
+    "id": "risk_resignation_penalty",
+    "text": "근로자는 계약기간 중 퇴사할 수 없고 퇴사하면 위약금 10,000,000원을 지급한다.",
+    "expected": ["RESIGNATION_RESTRICTION", "EXCESSIVE_PENALTY"],
+    "absent": []
+  },
+  {
+    "id": "risk_claim_waiver",
+    "text": "근로자는 임금과 근로시간에 관하여 민원, 진정 또는 소송을 제기하지 않는다.",
+    "expected": ["CLAIM_WAIVER"],
+    "absent": []
+  }
+]

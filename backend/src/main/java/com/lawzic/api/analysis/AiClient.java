@@ -11,6 +11,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -24,5 +26,27 @@ public class AiClient {
         body.add("file", new FileSystemResource(Path.of(filePath)));
         return builder.baseUrl(aiBaseUrl).build().post().uri("/internal/v1/analyze")
                 .contentType(MediaType.MULTIPART_FORM_DATA).body(body).retrieve().body(JsonNode.class);
+    }
+
+    public JsonNode question(String question, String filePath) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("question", question);
+        body.add("file", new FileSystemResource(Path.of(filePath)));
+        return builder.baseUrl(aiBaseUrl).build().post().uri("/internal/v1/question")
+                .contentType(MediaType.MULTIPART_FORM_DATA).body(body).retrieve().body(JsonNode.class);
+    }
+
+    public JsonNode legalChat(String question, List<Map<String, String>> history) {
+        Map<String, Object> body = Map.of("question", question, "history", history);
+        return builder.baseUrl(aiBaseUrl).build().post().uri("/internal/v1/legal-chat")
+                .contentType(MediaType.APPLICATION_JSON).body(body).retrieve().body(JsonNode.class);
+    }
+
+    public byte[] report(String filename, String analysisJson) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("filename", filename);
+        body.add("analysis_json", analysisJson);
+        return builder.baseUrl(aiBaseUrl).build().post().uri("/internal/v1/report")
+                .contentType(MediaType.MULTIPART_FORM_DATA).body(body).retrieve().body(byte[].class);
     }
 }

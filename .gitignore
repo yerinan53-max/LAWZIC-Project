@@ -16,6 +16,8 @@ frontend/dist/
 
 # Local build tools downloaded only for verification
 tools/
+output/
+tmp/
 
 # IDE / secrets
 .agents/

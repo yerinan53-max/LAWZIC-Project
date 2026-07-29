@@ -1,0 +1,68 @@
+[
+  {
+    "id": "overtime_weekly_limit",
+    "question": "연장근로는 일주일에 몇 시간까지 가능한가요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-50", "labor-standards-act-53"]
+  },
+  {
+    "id": "overtime_followup_pay",
+    "question": "그럼 수당은 어떻게 지급해야 하나요?",
+    "history": [
+      {"role": "user", "content": "연장근로를 했습니다."},
+      {"role": "assistant", "content": "연장근로 시간과 합의 여부를 확인해야 합니다."}
+    ],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-56"]
+  },
+  {
+    "id": "wage_deduction",
+    "question": "회사가 임금을 임의로 공제할 수 있나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-43"]
+  },
+  {
+    "id": "break_time",
+    "question": "8시간 근무하면 휴게시간은 얼마나 받아야 하나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-54"]
+  },
+  {
+    "id": "annual_leave",
+    "question": "1년 근무한 근로자의 연차 기준이 궁금합니다.",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-60"]
+  },
+  {
+    "id": "severance_pay",
+    "question": "퇴직금은 어떤 조건에서 받을 수 있나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["retirement-benefit-act-8"]
+  },
+  {
+    "id": "dismissal",
+    "question": "회사가 정당한 이유 없이 해고할 수 있나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-23"]
+  },
+  {
+    "id": "unsupported_labor_topic",
+    "question": "직장 내 괴롭힘 신고 절차를 알려주세요.",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": []
+  },
+  {
+    "id": "out_of_scope_inheritance",
+    "question": "상속세 신고 방법을 알려주세요.",
+    "history": [],
+    "in_scope": false,
+    "required_evidence_ids": []
+  }
+]

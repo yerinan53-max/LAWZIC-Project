@@ -1,8 +1,8 @@
 # LAWZIC
 
-Agentic RAG 기반 근로계약서 위험조항 분석 플랫폼의 실행 가능한 MVP입니다.
+Agentic RAG 기반 근로계약서 위험조항 분석 플랫폼입니다.
 
-현재 버전은 회원가입, JWT 로그인, PDF 업로드, 텍스트 추출, 규칙 기반 위험 탐지, ChromaDB 법령 검색, 분석 결과 저장과 화면 출력을 한 흐름으로 연결합니다. LLM과 LangGraph는 다음 단계에서 기존 AI 분석 모듈 안에 추가합니다.
+회원가입과 JWT 로그인부터 PDF 업로드, 위험조항 탐지, ChromaDB 법령 검색, LangGraph·LLM 분석, 출처 위치 표시, 계약서 질문·답변, 체크리스트 비교, 수정 문구 제안과 PDF 리포트 다운로드까지 하나의 서비스 흐름으로 제공합니다.
 
 > 분석 결과는 참고 정보이며 법률 자문이나 법적 판단을 대체하지 않습니다.
 
@@ -12,9 +12,9 @@ Agentic RAG 기반 근로계약서 위험조항 분석 플랫폼의 실행 가�
 React
   → Spring Boot: 회원가입 / 로그인 / JWT 검증
   → Spring Boot: PDF 검사 / 파일 및 DB 저장
-  → FastAPI: PDF 텍스트 추출 / 위험 표현 탐지 / ChromaDB 관련 법령 검색
+  → FastAPI: PDF 텍스트 추출 / 위험 규칙 탐지 / ChromaDB 법령 검색 / LangGraph·LLM 분석
   → Spring Boot: 분석 JSON 저장
-  → React: 요약 / 위험도 / 위험 조항 표시
+  → React: 요약 / 위험도 / 출처 하이라이트 / 체크리스트 / 질의응답 / 리포트
 ```
 
 브라우저는 FastAPI를 직접 호출하지 않습니다. 인증과 계약서 소유권 검사는 Spring Boot 한 곳에서 담당합니다.
@@ -146,12 +146,16 @@ npm run dev
 7. `ai/app/pdf_service.py`: PDF 본문 추출 확인
 8. `ai/app/analyzer.py`: 위험 규칙과 점수 계산 확인
 
-## 다음 개발 순서
+## 배포 전 점검
 
-1. 공식 법령 seed를 전체 대상 법령으로 확대하고 자동 갱신
-2. 표준근로계약서 데이터 추가
-3. 검색 문맥을 포함한 LLM 구조화 응답 추가
-4. PDF 추출 → 조항 분리 → 규칙 탐지 → RAG → LLM → 결과 통합을 LangGraph 노드로 변환
-5. 동기 분석을 백그라운드 작업과 상태 조회 방식으로 개선
+1. 운영용 DB와 파일 저장소 설정
+2. `JWT_SECRET`, CORS 허용 도메인과 운영 환경변수 분리
+3. HTTPS와 리버스 프록시 설정
+4. Ollama 모델·ChromaDB 데이터 배포 및 헬스체크 연결
+5. 사용자 업로드 PDF의 보관 기간, 삭제 정책과 개인정보 처리방침 확정
+6. 프론트엔드·백엔드·AI 서버의 운영 빌드 및 통합 테스트
 
 자세한 설계와 API 목록은 [docs/DESIGN.md](docs/DESIGN.md)를 참고하세요.
+
+개발 중 발생한 분석 취소 및 H2 enum 제약조건 문제는
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)에 정리했습니다.

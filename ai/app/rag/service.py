@@ -39,6 +39,7 @@ class LawRagService:
         self.db_path = Path(os.getenv("CHROMA_DB_PATH", project_dir / "data" / "chroma"))
         self.model_name = os.getenv("EMBEDDING_MODEL", "jhgan/ko-sroberta-multitask")
         self._collection = None
+        self._ready = False
         self._lock = Lock()
 
     def _get_collection(self):
@@ -70,8 +71,11 @@ class LawRagService:
         return collection.count()
 
     def ensure_ready(self) -> int:
-        collection = self._get_collection()
-        return collection.count() or self.ingest()
+        if not self._ready:
+            count = self.ingest()
+            self._ready = True
+            return count
+        return self._get_collection().count()
 
     def search(self, query: str, top_k: int = 3) -> list[dict]:
         if not query.strip():

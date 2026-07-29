@@ -75,6 +75,8 @@ public class ContractService {
 
     private void validatePdf(MultipartFile file) {
         if (file.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PDF 파일을 선택하세요.");
+        if (file.getSize() > 10L * 1024 * 1024)
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "10MB 이하의 PDF 파일만 업로드할 수 있습니다.");
         String name = file.getOriginalFilename();
         if (name == null || !name.toLowerCase().endsWith(".pdf"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PDF 파일만 업로드할 수 있습니다.");

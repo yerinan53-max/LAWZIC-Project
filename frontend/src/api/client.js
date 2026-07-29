@@ -16,3 +16,15 @@ export async function api(path, options = {}) {
   }
   return response.status === 204 ? null : response.json();
 }
+
+export async function apiBlob(path, options = {}) {
+  const headers = new Headers(options.headers ?? {});
+  const token = getToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message ?? error.detail ?? "파일을 불러오지 못했습니다.");
+  }
+  return response.blob();
+}

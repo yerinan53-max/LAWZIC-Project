@@ -50,6 +50,16 @@
     "text": "1주간의 근로시간은 휴게시간을 제외하고 40시간을 초과할 수 없고, 1일의 근로시간은 휴게시간을 제외하고 8시간을 초과할 수 없다."
   },
   {
+    "id": "labor-standards-act-53",
+    "law_name": "근로기준법",
+    "article_number": "제53조",
+    "title": "연장 근로의 제한",
+    "effective_date": "2025-10-23",
+    "source_url": "https://www.law.go.kr/lsLinkCommonInfo.do?lsJoLnkSeq=1025590129",
+    "keywords": ["연장근로", "주 12시간", "근로시간 한도", "합의", "주 52시간"],
+    "text": "당사자 간에 합의하면 1주 간에 12시간을 한도로 근로기준법 제50조의 근로시간을 연장할 수 있다."
+  },
+  {
     "id": "labor-standards-act-54",
     "law_name": "근로기준법",
     "article_number": "제54조",
