@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api, clearLawzicSession, clearToken, getToken } from "./api/client";
+import AccountRecoveryPage from "./pages/AccountRecoveryPage";
 import ContractWorkspacePage from "./pages/ContractWorkspacePage";
 import HomePage from "./pages/HomePage";
 import LegalConsultationPage from "./pages/LegalConsultationPage";
 import LoginPage from "./pages/LoginPage";
 import MyPage from "./pages/MyPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SignupPage from "./pages/SignupPage";
 
 function ProtectedRoute({ user, children }) {
@@ -77,6 +79,7 @@ export default function App() {
       : <LoginPage
           onHome={showHome}
           onSignup={() => navigate("/signup")}
+          onRecovery={mode => navigate(`/account-recovery?mode=${mode}`)}
           onLogin={loggedInUser => {
             setUser(loggedInUser);
             navigate(location.state?.from || "/contracts", { replace: true });
@@ -87,6 +90,19 @@ export default function App() {
       ? <Navigate to="/contracts" replace/>
       : <SignupPage onHome={showHome} onLogin={() => navigate("/login")}/>
     }/>
+    <Route path="/account-recovery" element={user
+      ? <Navigate to="/contracts" replace/>
+      : <AccountRecoveryPage
+          initialMode={new URLSearchParams(location.search).get("mode")}
+          onHome={showHome}
+          onLogin={() => navigate("/login")}
+        />
+    }/>
+    <Route path="/reset-password" element={<ResetPasswordPage
+      token={new URLSearchParams(location.search).get("token")}
+      onHome={showHome}
+      onLogin={() => navigate("/login")}
+    />}/>
     <Route path="/contracts" element={<ProtectedRoute user={user}>
       <ContractWorkspacePage
         user={user}

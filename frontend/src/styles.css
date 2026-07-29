@@ -172,6 +172,23 @@ footer p { margin: 0; color: var(--primary); font-weight: 900; letter-spacing: .
 }
 .auth-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(84, 115, 140, .16); }
 .auth-card form > button { width: 100%; }
+.signup-card { width: min(560px, 100%); }
+.consent-box { margin: 1.25rem 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.consent-box label { margin: 0; }
+.consent-all { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: .65rem !important; padding: 1rem; background: #f4f7f8; border-bottom: 1px solid var(--border); }
+.consent-box input[type="checkbox"] { width: 19px; height: 19px; margin: 0; accent-color: var(--primary); }
+.consent-item { padding: .9rem 1rem; border-bottom: 1px solid #ebe7de; }
+.consent-item:last-child { border-bottom: 0; }
+.consent-item summary { display: flex; justify-content: space-between; align-items: center; gap: .75rem; cursor: pointer; color: var(--primary); font-size: .9rem; }
+.consent-item summary label { display: flex; align-items: center; gap: .55rem; cursor: pointer; }
+.consent-item summary b { margin-right: .2rem; color: var(--danger); font-size: .75rem; }
+.consent-item summary > span { flex: none; color: var(--muted); font-size: .78rem; text-decoration: underline; }
+.consent-item > p { margin: .85rem 0 0; padding: .9rem; color: var(--muted); background: #f7f8f9; border-radius: 7px; white-space: pre-line; font-size: .82rem; line-height: 1.7; }
+.auth-links { display: flex; justify-content: center; align-items: center; margin-top: .75rem; color: var(--muted); }
+.auth-links .link { width: auto; margin: 0; padding: .35rem .55rem; }
+.recovery-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: 1.5rem; padding: .3rem; background: #eef2f4; border-radius: 9px; }
+.recovery-tabs button { color: var(--muted); background: transparent; border-color: transparent; }
+.recovery-tabs button.active { color: #fff; background: var(--primary); border-color: var(--primary); }
 .secondary, .link { background: transparent; color: var(--primary); border: 1px solid var(--border); }
 .secondary:hover, .link:hover { color: #fff; background: var(--primary); border-color: var(--primary); }
 .link { width: 100%; margin-top: .5rem; border: 0; }

@@ -23,6 +23,7 @@ public class AccountService {
     private final ContractService contractService;
     private final AnalysisService analysisService;
     private final LegalConsultationHistoryRepository consultationHistory;
+    private final PasswordResetTokenRepository passwordResetTokens;
 
     @Transactional
     public User updateAccount(String email, String name, String currentPassword, String newPassword) {
@@ -65,6 +66,8 @@ public class AccountService {
         contractService.deleteUserUploadDirectory(user.getId());
         consultationHistory.deleteAllByUserEmail(email);
         consultationHistory.flush();
+        passwordResetTokens.deleteAllByUserEmail(email);
+        passwordResetTokens.flush();
         users.delete(user);
         users.flush();
     }

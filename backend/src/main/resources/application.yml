@@ -14,6 +14,14 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
 
 app:
   jwt:
@@ -21,6 +29,8 @@ app:
     expiration-ms: 3600000
   upload-dir: ${UPLOAD_DIR:./uploads}
   ai-base-url: ${AI_BASE_URL:http://localhost:8000}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  mail-from: ${MAIL_FROM:no-reply@lawzic.local}
 
 ---
 spring:

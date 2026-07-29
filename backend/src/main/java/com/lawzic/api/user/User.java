@@ -24,6 +24,12 @@ public class User {
     private String role = "ROLE_USER";
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+    private Instant termsAgreedAt;
+    private Instant privacyAgreedAt;
+    @Column(length = 20)
+    private String termsVersion;
+    @Column(length = 20)
+    private String privacyVersion;
 
     public User(String email, String passwordHash, String name) {
         this.email = email.toLowerCase();
@@ -33,4 +39,11 @@ public class User {
 
     public void updateName(String name) { this.name = name; }
     public void updatePassword(String passwordHash) { this.passwordHash = passwordHash; }
+    public void recordRequiredConsents(String termsVersion, String privacyVersion) {
+        Instant now = Instant.now();
+        this.termsAgreedAt = now;
+        this.privacyAgreedAt = now;
+        this.termsVersion = termsVersion;
+        this.privacyVersion = privacyVersion;
+    }
 }
