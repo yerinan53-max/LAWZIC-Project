@@ -140,8 +140,8 @@ public class AuthController {
         return new UserResponse(user.getId(), user.getEmail(), user.getName());
     }
 
-    private AuthResponse authResponse(User user) {
-        return new AuthResponse(jwtService.createToken(user.getEmail()), "Bearer",
-                jwtService.expirationSeconds(), toResponse(user));
+    private AuthResponse authResponse(OAuthLoginService.AuthenticatedUser user) {
+        return new AuthResponse(jwtService.createToken(user.email()), "Bearer",
+                jwtService.expirationSeconds(), new UserResponse(user.id(), user.email(), user.name()));
     }
 }

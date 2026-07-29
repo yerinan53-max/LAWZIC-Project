@@ -9,7 +9,7 @@ from .pdf_service import PdfReadError, extract_document
 from .rag import LawRagService
 from .schemas import AnalysisResponse, LegalChatRequest, LegalChatResponse, QuestionResponse
 
-app = FastAPI(title="LAWZIC API", version="0.1.0")
+app = FastAPI(title="LAWZIC API", version="1.0.0")
 rag = LawRagService()
 agent = ContractAnalysisAgent(rag)
 

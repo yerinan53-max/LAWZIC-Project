@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import OriginalPdfModal from "../components/OriginalPdfModal";
 import ContractAnalysisPage from "./ContractAnalysisPage";
 import ContractHistoryPage from "./ContractHistoryPage";
 import PdfUploadPage from "./PdfUploadPage";
@@ -9,6 +10,7 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
   const { contractId } = useParams();
   const navigate = useNavigate();
   const routedContract = useRef(null);
+  const [previewContract, setPreviewContract] = useState(null);
   const workspace = useContractWorkspace();
 
   useEffect(() => {
@@ -59,24 +61,27 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
       <div className="user"><span>{user?.name ?? user?.email}님</span><button className="secondary" onClick={onConsultation}>법률 AI 상담</button><button className="secondary" onClick={onMyPage}>마이페이지</button><button className="secondary" onClick={onLogout}>로그아웃</button></div>
     </header>
     <main className="grid">
-      <PdfUploadPage
-        busy={workspace.busy}
-        pendingFile={workspace.pendingFile}
-        analyzingId={workspace.analyzingId}
-        error={workspace.error}
-        onFilesSelected={workspace.selectFiles}
-        onClear={workspace.clearPendingFile}
-        onAnalyze={analyzePending}
-      />
-      <ContractHistoryPage
-        contracts={workspace.contracts}
-        busy={workspace.busy}
-        analyzingId={workspace.analyzingId}
-        onViewResult={viewResult}
-        onAnalyze={analyze}
-        onCancel={workspace.cancelAnalysis}
-        onDelete={deleteContract}
-      />
+      <div className="workspace-sidebar">
+        <PdfUploadPage
+          busy={workspace.busy}
+          pendingFile={workspace.pendingFile}
+          analyzingId={workspace.analyzingId}
+          error={workspace.error}
+          onFilesSelected={workspace.selectFiles}
+          onClear={workspace.clearPendingFile}
+          onAnalyze={analyzePending}
+        />
+        <ContractHistoryPage
+          contracts={workspace.contracts}
+          busy={workspace.busy}
+          analyzingId={workspace.analyzingId}
+          onViewFile={setPreviewContract}
+          onViewResult={viewResult}
+          onAnalyze={analyze}
+          onCancel={workspace.cancelAnalysis}
+          onDelete={deleteContract}
+        />
+      </div>
       <ContractAnalysisPage
         selected={workspace.selected}
         result={workspace.result}
@@ -91,5 +96,6 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
         onQuestionChange={workspace.setQuestion}
       />
     </main>
+    {previewContract && <OriginalPdfModal contract={previewContract} onClose={() => setPreviewContract(null)}/>}
   </div>;
 }

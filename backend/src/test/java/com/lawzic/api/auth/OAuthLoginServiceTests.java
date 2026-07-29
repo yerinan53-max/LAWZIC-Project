@@ -64,13 +64,35 @@ class OAuthLoginServiceTests {
                 null, false, true, Instant.now().plusSeconds(60));
         when(tickets.findByTokenHash(anyString())).thenReturn(Optional.of(ticket));
         when(passwordEncoder.encode(anyString())).thenReturn("bcrypt-random-internal-password");
-        when(users.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        when(users.save(userCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
         OAuthLoginService service = new OAuthLoginService(users, identities, tickets, passwordEncoder);
 
-        User registered = service.register("raw-ticket", true, true);
+        OAuthLoginService.AuthenticatedUser registered = service.register("raw-ticket", true, true);
 
-        assertEquals("bcrypt-random-internal-password", registered.getPasswordHash());
-        assertNotNull(registered.getPasswordHash());
+        assertEquals("new@example.com", registered.email());
+        assertEquals("bcrypt-random-internal-password", userCaptor.getValue().getPasswordHash());
+        assertNotNull(userCaptor.getValue().getPasswordHash());
         verify(identities).save(any(SocialIdentity.class));
+    }
+
+    @Test
+    void exchangeConvertsTicketUserToSessionIndependentSnapshot() {
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(7L);
+        when(user.getEmail()).thenReturn("social@example.com");
+        when(user.getName()).thenReturn("소셜 사용자");
+        OAuthLoginTicket ticket = new OAuthLoginTicket(
+                "ticket-hash", "google", "subject", "social@example.com", "소셜 사용자",
+                user, false, false, Instant.now().plusSeconds(60));
+        when(tickets.findByTokenHash(anyString())).thenReturn(Optional.of(ticket));
+        OAuthLoginService service = new OAuthLoginService(users, identities, tickets, passwordEncoder);
+
+        OAuthLoginService.AuthenticatedUser authenticated = service.exchange("raw-ticket");
+
+        assertEquals(7L, authenticated.id());
+        assertEquals("social@example.com", authenticated.email());
+        assertEquals("소셜 사용자", authenticated.name());
+        assertNotNull(ticket.getUsedAt());
     }
 }

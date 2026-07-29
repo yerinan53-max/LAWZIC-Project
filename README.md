@@ -34,7 +34,7 @@ docs/      설계 문서
 - Maven 3.9 이상
 - Python 3.12 권장
 - Node.js 20 이상
-- MySQL 8은 선택 사항입니다. 기본 실행은 H2 파일 DB를 사용합니다.
+- MariaDB 10.6 이상
 
 현재 컴퓨터에서 확인된 기본 환경은 Java 17과 Python 3.10이며 Maven과 Node.js는 PATH에 없습니다. Python 코드는 3.12를 기준으로 작성했습니다.
 
@@ -78,14 +78,21 @@ LLM 또는 Ollama 호출에 실패하면 서비스가 중단되지 않고 규칙
 
 확인 주소: `http://localhost:8000/docs`, `http://localhost:8000/health`
 
-### 법령 Vector DB 다시 만들기
+### 공식 노동관계 법령 동기화 및 Vector DB 구축
 
 ```powershell
 cd ai
-.\.venv\Scripts\python.exe -m scripts.ingest_laws
+$env:LAW_OPEN_API_OC="국가법령정보 공동활용 인증값"
+.\.venv\Scripts\python.exe -m scripts.sync_laws --ingest
 ```
 
-현재 seed 데이터는 `ai/data/laws/labor_laws_seed.json`의 공식 법령 10개 조문입니다. Vector DB는 `ai/data/chroma`에 생성됩니다.
+국가법령정보센터 공동활용 Open API에서 노동관계 법령·시행령·시행규칙을 일괄
+수집하고 조·항·호·목 단위로 분리합니다. 원본 corpus와 수집 매니페스트는
+`ai/data/laws`에, Vector DB는 `ai/data/chroma`에 생성됩니다.
+
+법령 개정 반영도 같은 명령으로 수행합니다. 매니페스트의 corpus SHA-256과
+ChromaDB 버전이 다르면 AI 서버는 오래된 검색기를 사용하지 않고 재적재를 요구합니다.
+대상 법령 목록은 `ai/data/laws/labor_law_catalog.json`에서 관리합니다.
 
 RAG 단독 검색은 다음 API로 확인합니다.
 
@@ -102,13 +109,13 @@ cd backend
 mvn spring-boot:run
 ```
 
-기본값은 별도 설치가 필요 없는 H2 DB입니다. MySQL로 전환할 때:
+MariaDB 연결 정보를 `.env` 또는 환경변수로 설정합니다.
 
 ```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/lawzic?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
-$env:DB_USERNAME="root"
+$env:DB_URL="jdbc:mariadb://localhost:3306/lawzic?useUnicode=true&characterEncoding=UTF-8"
+$env:DB_USERNAME="lawzic"
 $env:DB_PASSWORD="본인비밀번호"
-mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+mvn spring-boot:run
 ```
 
 운영 또는 공개 배포 전에는 반드시 `JWT_SECRET`을 긴 무작위 값으로 변경해야 합니다.

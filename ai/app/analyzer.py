@@ -156,14 +156,28 @@ def _first_actionable_match(
 
 SECTION_SIGNALS = {
     "WAGE": ("기본급", "월 임금", "임금 산정", "지급방법", "계좌로 지급", "지급한다"),
-    "WORK_HOURS": ("소정근로", "1일", "1주", "시부터", "시까지", "휴게시간"),
+    "WORK_HOURS": ("소정근로", "1일", "1주", "시부터", "시까지", "휴게시간", "휴게"),
     "HOLIDAY": ("주휴일", "매주 일요일", "유급휴일", "근로자의 날", "휴일을 보장"),
     "ANNUAL_LEAVE": ("연차 유급휴가", "제60조", "부여", "휴가를 사용"),
+}
+
+SECTION_TITLE_ALIASES = {
+    "WORK_HOURS": ("근로시간", "근무시간", "소정근로시간"),
 }
 
 SECTION_NEGATIVE_SIGNALS = {
     "HOLIDAY": ("지급일이 휴일", "지급일이 공휴일", "휴일인 경우 그 전", "휴일인 경우에는 그 전"),
 }
+
+TIME_RANGE_PATTERN = re.compile(
+    r"(?:[01]?\d|2[0-3])(?:\s*시|\s*:\s*[0-5]\d)"
+    r"\s*(?:부터|~|～|-|–|—)\s*"
+    r"(?:[01]?\d|2[0-3])(?:\s*시|\s*:\s*[0-5]\d)"
+)
+WEEKDAY_WORK_PATTERN = re.compile(
+    r"(?:월요일|월)\s*(?:부터|~|～|-|–|—)\s*(?:금요일|금)"
+    r"|주\s*5\s*일"
+)
 
 
 def _context(text: str, start: int, end: int, radius: int = 70) -> str:
@@ -215,8 +229,11 @@ def _best_section_evidence(
             continue
         heading = segment[:80]
         score = len(matched) * 2
-        if re.search(rf"제\s*\d+\s*조[^\n]{{0,30}}{re.escape(title)}", heading):
+        title_aliases = SECTION_TITLE_ALIASES.get(code, (title,))
+        if any(re.search(rf"제\s*\d+\s*조[^\n]{{0,30}}{re.escape(alias)}", heading) for alias in title_aliases):
             score += 20
+        if code == "WORK_HOURS" and TIME_RANGE_PATTERN.search(segment):
+            score += 12
         score += sum(4 for signal in SECTION_SIGNALS.get(code, ()) if signal in segment)
         score -= sum(15 for signal in SECTION_NEGATIVE_SIGNALS.get(code, ()) if signal in segment)
         # 동점이면 문서에서 먼저 나온 조항을 선택한다.
@@ -226,6 +243,30 @@ def _best_section_evidence(
     score, _, evidence = max(candidates, key=lambda item: (item[0], item[1]))
     # 단순 우연 언급만 있는 문장은 필수 조항의 근거로 인정하지 않는다.
     return evidence if score >= 3 else None
+
+
+def _indirect_holiday_evidence(text: str) -> str | None:
+    """근무일 범위는 휴일의 간접 근거지만 유급 주휴일을 확정하는 근거는 아니다."""
+    for segment in _document_segments(text):
+        if WEEKDAY_WORK_PATTERN.search(segment):
+            return segment
+    return None
+
+
+def reconcile_checklist_findings(
+    findings: list[RiskClause], checklist: list[ChecklistItem],
+) -> list[RiskClause]:
+    """체크리스트 근거와 모순되는 '조항 누락' 결과가 최종 리포트에 섞이지 않게 한다."""
+    checks = {item.code: item for item in checklist}
+    reconciled = []
+    for finding in findings:
+        if finding.clause_type.startswith("MISSING_"):
+            code = finding.clause_type.removeprefix("MISSING_")
+            check = checks.get(code)
+            if check is not None and (check.evidence is not None or check.status != "MISSING"):
+                continue
+        reconciled.append(finding)
+    return deduplicate_findings(reconciled)
 
 
 def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:
@@ -256,6 +297,12 @@ def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:
         code: _best_section_evidence(text, code, title, keywords)
         for code, title, keywords, _, _ in REQUIRED_SECTIONS
     }
+    indirect_sections: set[str] = set()
+    if section_evidence["HOLIDAY"] is None:
+        indirect_holiday = _indirect_holiday_evidence(text)
+        if indirect_holiday is not None:
+            section_evidence["HOLIDAY"] = indirect_holiday
+            indirect_sections.add("HOLIDAY")
     for code, title, keywords, law, article in REQUIRED_SECTIONS:
         if section_evidence[code] is None:
             findings.append(RiskClause(
@@ -267,9 +314,6 @@ def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:
             ))
 
     findings = deduplicate_findings(findings)
-    score, level, review_count = calculate_verified_risk(findings)
-    preview = re.sub(r"\s+", " ", text)[:240]
-    summary = f"계약서에서 추출한 주요 내용: {preview}{'…' if len(text) > 240 else ''}"
     risk_types = {item.clause_type for item in findings if not item.review_required}
     review_types = {item.clause_type for item in findings if item.review_required}
     checklist = []
@@ -278,7 +322,7 @@ def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:
         status = (
             "MISSING" if evidence is None
             else "RISK" if risk_types & CHECKLIST_RISK_TYPES.get(code, set())
-            else "REVIEW" if review_types & CHECKLIST_RISK_TYPES.get(code, set())
+            else "REVIEW" if code in indirect_sections or review_types & CHECKLIST_RISK_TYPES.get(code, set())
             else "COMPLIANT"
         )
         checklist.append(ChecklistItem(
@@ -288,6 +332,11 @@ def analyze_contract(contract_id: int, text: str) -> AnalysisResponse:
                 law_name=law, article_number=article, content="표준근로계약서 필수 확인 항목입니다."
             ),
         ))
+    findings = reconcile_checklist_findings(findings, checklist)
+    score, level, clause_review_count = calculate_verified_risk(findings)
+    review_count = clause_review_count + sum(item.status == "REVIEW" for item in checklist)
+    preview = re.sub(r"\s+", " ", text)[:240]
+    summary = f"계약서에서 추출한 주요 내용: {preview}{'…' if len(text) > 240 else ''}"
     return AnalysisResponse(
         contract_id=contract_id, summary=summary, overall_risk_level=level, overall_score=score,
         review_required_count=review_count,

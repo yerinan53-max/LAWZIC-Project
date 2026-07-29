@@ -15,6 +15,8 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class LegalConsultationController {
     private static final int MAX_HISTORY = 12;
+    private static final int MAX_QUESTION_LENGTH = 4000;
+    private static final int MAX_MESSAGE_LENGTH = 8000;
     private final LegalConsultationService consultationService;
 
     public record ChatMessage(String role, String content) {}
@@ -24,9 +26,9 @@ public class LegalConsultationController {
     public JsonNode chat(@RequestBody ChatRequest request, Principal principal) {
         if (request == null || request.question() == null
                 || request.question().trim().length() < 2
-                || request.question().length() > 500) {
+                || request.question().length() > MAX_QUESTION_LENGTH) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "질문은 2자 이상 500자 이하로 입력하세요."
+                    HttpStatus.BAD_REQUEST, "질문은 2자 이상 4,000자 이하로 입력하세요."
             );
         }
         List<ChatMessage> requestedHistory = request.history() == null ? List.of() : request.history();
@@ -40,7 +42,7 @@ public class LegalConsultationController {
                         && ("user".equals(item.role()) || "assistant".equals(item.role()))
                         && item.content() != null
                         && !item.content().isBlank()
-                        && item.content().length() <= 2000)
+                        && item.content().length() <= MAX_MESSAGE_LENGTH)
                 .map(item -> Map.of("role", item.role(), "content", item.content().trim()))
                 .toList();
         return consultationService.chat(principal.getName(), request.question().trim(), history);

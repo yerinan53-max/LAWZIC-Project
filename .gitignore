@@ -28,4 +28,4 @@ tmp/
 .env
 **/.env
 !.env.example
-**/.env.example
+!**/.env.example

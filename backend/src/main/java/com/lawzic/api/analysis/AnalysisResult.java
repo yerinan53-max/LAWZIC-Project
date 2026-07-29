@@ -17,7 +17,8 @@ public class AnalysisResult {
     private Long id;
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     private Contract contract;
-    @Lob @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String resultJson;
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

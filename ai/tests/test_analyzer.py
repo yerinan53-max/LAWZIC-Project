@@ -90,3 +90,24 @@ def test_real_wage_deduction_is_still_reported_after_safe_sentence():
     result = analyze_contract(12, text)
     detected = {item.clause_type for item in result.clauses}
     assert "ARBITRARY_WAGE_DEDUCTION" in detected
+
+
+def test_work_schedule_alias_and_weekdays_are_not_reported_as_complete_omissions():
+    text = """근로계약서
+제4조 근무시간
+월요일~금요일 09:00~18:00 (휴게 12:00~13:00)
+임금은 기본급 2,800,000원으로 매월 지급한다.
+제7조 연차휴가
+연차휴가는 관계 법령에 따른다.
+"""
+    result = analyze_contract(13, text)
+    checklist = {item.code: item for item in result.checklist}
+    detected = {item.clause_type for item in result.clauses}
+
+    assert checklist["WORK_HOURS"].status == "COMPLIANT"
+    assert "제4조 근무시간" in checklist["WORK_HOURS"].evidence
+    assert checklist["HOLIDAY"].status == "REVIEW"
+    assert "월요일~금요일" in checklist["HOLIDAY"].evidence
+    assert "MISSING_WORK_HOURS" not in detected
+    assert "MISSING_HOLIDAY" not in detected
+    assert result.review_required_count == 1

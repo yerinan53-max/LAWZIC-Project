@@ -1,0 +1,371 @@
+{
+  "schema_version": 1,
+  "source": "국가법령정보센터 국가법령정보 공동활용 Open API",
+  "source_url": "https://open.law.go.kr/",
+  "fetched_at": "2026-07-29T05:50:59.047147+00:00",
+  "corpus_sha256": "9322e6508f8fccf2bc11550784da3305b420629aedb0dfff34f247188112279a",
+  "law_count": 45,
+  "record_count": 12377,
+  "laws": [
+    {
+      "law_id": "001872",
+      "master_id": "265959",
+      "law_name": "근로기준법",
+      "effective_date": "2025-10-23",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003058",
+      "master_id": "270551",
+      "law_name": "근로기준법 시행령",
+      "effective_date": "2025-10-23",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "006859",
+      "master_id": "269393",
+      "law_name": "근로기준법 시행규칙",
+      "effective_date": "2025-02-23",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "000129",
+      "master_id": "218303",
+      "law_name": "최저임금법",
+      "effective_date": "2020-05-26",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "005247",
+      "master_id": "206564",
+      "law_name": "최저임금법 시행령",
+      "effective_date": "2019-01-01",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "008480",
+      "master_id": "282351",
+      "law_name": "최저임금법 시행규칙",
+      "effective_date": "2026-01-02",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "009883",
+      "master_id": "284455",
+      "law_name": "근로자퇴직급여 보장법",
+      "effective_date": "2026-07-01",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "010035",
+      "master_id": "284693",
+      "law_name": "근로자퇴직급여 보장법 시행령",
+      "effective_date": "2026-03-24",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "010043",
+      "master_id": "243903",
+      "law_name": "근로자퇴직급여 보장법 시행규칙",
+      "effective_date": "2022-07-12",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "000130",
+      "master_id": "276851",
+      "law_name": "남녀고용평등과 일ㆍ가정 양립 지원에 관한 법률",
+      "effective_date": "2025-10-01",
+      "ministry": "고용노동부,성평등가족부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003140",
+      "master_id": "277437",
+      "law_name": "남녀고용평등과 일ㆍ가정 양립 지원에 관한 법률 시행령",
+      "effective_date": "2025-10-01",
+      "ministry": "고용노동부,성평등가족부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "006909",
+      "master_id": "278673",
+      "law_name": "남녀고용평등과 일ㆍ가정 양립 지원에 관한 법률 시행규칙",
+      "effective_date": "2025-10-01",
+      "ministry": "고용노동부,성평등가족부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "010356",
+      "master_id": "232201",
+      "law_name": "기간제 및 단시간근로자 보호 등에 관한 법률",
+      "effective_date": "2021-05-18",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "010461",
+      "master_id": "230833",
+      "law_name": "기간제 및 단시간근로자 보호 등에 관한 법률 시행령",
+      "effective_date": "2021-04-08",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "010473",
+      "master_id": "79595",
+      "law_name": "기간제 및 단시간근로자 보호 등에 관한 법률 시행규칙",
+      "effective_date": "2007-07-01",
+      "ministry": "고용노동부",
+      "law_type": "노동부령"
+    },
+    {
+      "law_id": "000122",
+      "master_id": "286257",
+      "law_name": "파견근로자 보호 등에 관한 법률",
+      "effective_date": "2026-05-26",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "005348",
+      "master_id": "272523",
+      "law_name": "파견근로자 보호 등에 관한 법률 시행령",
+      "effective_date": "2025-06-21",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "008563",
+      "master_id": "263205",
+      "law_name": "파견근로자 보호 등에 관한 법률 시행규칙",
+      "effective_date": "2024-06-12",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "001766",
+      "master_id": "287805",
+      "law_name": "산업안전보건법",
+      "effective_date": "2026-07-07",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003786",
+      "master_id": "288347",
+      "law_name": "산업안전보건법 시행령",
+      "effective_date": "2026-07-28",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "007364",
+      "master_id": "263749",
+      "law_name": "산업안전보건법 시행규칙",
+      "effective_date": "2026-06-26",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "001760",
+      "master_id": "283459",
+      "law_name": "산업재해보상보험법",
+      "effective_date": "2026-07-01",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003793",
+      "master_id": "287491",
+      "law_name": "산업재해보상보험법 시행령",
+      "effective_date": "2026-07-01",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "007373",
+      "master_id": "283239",
+      "law_name": "산업재해보상보험법 시행규칙",
+      "effective_date": "2026-02-02",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "001761",
+      "master_id": "279807",
+      "law_name": "고용보험법",
+      "effective_date": "2026-05-12",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "002249",
+      "master_id": "287489",
+      "law_name": "고용보험법 시행령",
+      "effective_date": "2026-07-01",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "006288",
+      "master_id": "287861",
+      "law_name": "고용보험법 시행규칙",
+      "effective_date": "2026-07-01",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "000143",
+      "master_id": "273667",
+      "law_name": "노동조합 및 노동관계조정법",
+      "effective_date": "2026-03-10",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003166",
+      "master_id": "283803",
+      "law_name": "노동조합 및 노동관계조정법 시행령",
+      "effective_date": "2026-03-10",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "006935",
+      "master_id": "284021",
+      "law_name": "노동조합 및 노동관계조정법 시행규칙",
+      "effective_date": "2026-03-10",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "009252",
+      "master_id": "243061",
+      "law_name": "근로복지기본법",
+      "effective_date": "2023-06-11",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "009264",
+      "master_id": "284691",
+      "law_name": "근로복지기본법 시행령",
+      "effective_date": "2026-03-24",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "009267",
+      "master_id": "278671",
+      "law_name": "근로복지기본법 시행규칙",
+      "effective_date": "2025-10-01",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "000128",
+      "master_id": "279735",
+      "law_name": "임금채권보장법",
+      "effective_date": "2026-05-12",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "004551",
+      "master_id": "285855",
+      "law_name": "임금채권보장법 시행령",
+      "effective_date": "2026-05-12",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "007898",
+      "master_id": "286033",
+      "law_name": "임금채권보장법 시행규칙",
+      "effective_date": "2026-05-12",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "011990",
+      "master_id": "218301",
+      "law_name": "채용절차의 공정화에 관한 법률",
+      "effective_date": "2020-05-26",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "012193",
+      "master_id": "209867",
+      "law_name": "채용절차의 공정화에 관한 법률 시행령",
+      "effective_date": "2019-07-17",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "012220",
+      "master_id": "166363",
+      "law_name": "채용절차의 공정화에 관한 법률 시행규칙",
+      "effective_date": "2014-12-31",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "009542",
+      "master_id": "276857",
+      "law_name": "외국인근로자의 고용 등에 관한 법률",
+      "effective_date": "2025-10-01",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "009657",
+      "master_id": "244037",
+      "law_name": "외국인근로자의 고용 등에 관한 법률 시행령",
+      "effective_date": "2023-02-03",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "009698",
+      "master_id": "271599",
+      "law_name": "외국인근로자의 고용 등에 관한 법률 시행규칙",
+      "effective_date": "2025-06-02",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    },
+    {
+      "law_id": "000141",
+      "master_id": "243063",
+      "law_name": "근로자참여 및 협력증진에 관한 법률",
+      "effective_date": "2022-12-11",
+      "ministry": "고용노동부",
+      "law_type": "법률"
+    },
+    {
+      "law_id": "003070",
+      "master_id": "245235",
+      "law_name": "근로자참여 및 협력증진에 관한 법률 시행령",
+      "effective_date": "2022-12-11",
+      "ministry": "고용노동부",
+      "law_type": "대통령령"
+    },
+    {
+      "law_id": "006866",
+      "master_id": "251789",
+      "law_name": "근로자참여 및 협력증진에 관한 법률 시행규칙",
+      "effective_date": "2023-06-08",
+      "ministry": "고용노동부",
+      "law_type": "고용노동부령"
+    }
+  ]
+}

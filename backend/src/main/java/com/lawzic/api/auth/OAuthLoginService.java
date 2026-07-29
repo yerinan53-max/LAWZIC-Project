@@ -53,17 +53,17 @@ public class OAuthLoginService {
     }
 
     @Transactional
-    public User exchange(String rawTicket) {
+    public AuthenticatedUser exchange(String rawTicket) {
         OAuthLoginTicket ticket = valid(rawTicket);
         if (ticket.isLinkingRequired() || ticket.isConsentRequired() || ticket.getUser() == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "계정 연결 또는 필수 동의가 필요합니다.");
         }
         ticket.use();
-        return ticket.getUser();
+        return AuthenticatedUser.from(ticket.getUser());
     }
 
     @Transactional
-    public User link(String rawTicket, String email, String password) {
+    public AuthenticatedUser link(String rawTicket, String email, String password) {
         OAuthLoginTicket ticket = valid(rawTicket);
         if (!ticket.isLinkingRequired()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "계정 연결이 필요하지 않은 요청입니다.");
@@ -77,11 +77,11 @@ public class OAuthLoginService {
         identities.save(new SocialIdentity(user, ticket.getProvider(), ticket.getProviderUserId()));
         ticket.attach(user);
         ticket.use();
-        return user;
+        return AuthenticatedUser.from(user);
     }
 
     @Transactional
-    public User register(String rawTicket, boolean termsAgreed, boolean privacyAgreed) {
+    public AuthenticatedUser register(String rawTicket, boolean termsAgreed, boolean privacyAgreed) {
         OAuthLoginTicket ticket = valid(rawTicket);
         if (!ticket.isConsentRequired()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "신규 소셜 가입 동의가 필요하지 않은 요청입니다.");
@@ -95,7 +95,7 @@ public class OAuthLoginService {
         identities.save(new SocialIdentity(user, ticket.getProvider(), ticket.getProviderUserId()));
         ticket.attach(user);
         ticket.use();
-        return user;
+        return AuthenticatedUser.from(user);
     }
 
     private OAuthLoginTicket valid(String raw) {
@@ -134,4 +134,10 @@ public class OAuthLoginService {
 
     public record TicketStatus(boolean linkingRequired, boolean consentRequired,
                                String provider, String maskedEmail) {}
+
+    public record AuthenticatedUser(Long id, String email, String name) {
+        static AuthenticatedUser from(User user) {
+            return new AuthenticatedUser(user.getId(), user.getEmail(), user.getName());
+        }
+    }
 }

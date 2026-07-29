@@ -1,5 +1,15 @@
 [
   {
+    "id": "probation_minimum_wage",
+    "question": "수습기간에는 최저임금보다 적게 지급할 수 있나요?",
+    "history": [
+      {"role": "user", "content": "연장근로는 일주일에 몇 시간까지 가능한가요?"},
+      {"role": "assistant", "content": "합의하면 연장근로를 할 수 있습니다."}
+    ],
+    "in_scope": true,
+    "required_evidence_ids": ["minimum-wage-act-5", "minimum-wage-enforcement-decree-3"]
+  },
+  {
     "id": "overtime_weekly_limit",
     "question": "연장근로는 일주일에 몇 시간까지 가능한가요?",
     "history": [],
@@ -42,7 +52,25 @@
     "question": "퇴직금은 어떤 조건에서 받을 수 있나요?",
     "history": [],
     "in_scope": true,
-    "required_evidence_ids": ["retirement-benefit-act-8"]
+    "required_evidence_ids": ["retirement-benefit-act-4", "retirement-benefit-act-8"]
+  },
+  {
+    "id": "severance_under_one_year",
+    "question": "1년을 다 못다니면 퇴직금을 못받는거예요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["retirement-benefit-act-4", "retirement-benefit-act-8"]
+  },
+  {
+    "id": "forced_recommended_resignation",
+    "question": "회사에서 권고사직서를 쓰라고 강요하면 어떻게 해야 하나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": [
+      "labor-standards-act-23",
+      "labor-standards-act-27",
+      "labor-standards-act-28"
+    ]
   },
   {
     "id": "dismissal",
@@ -52,11 +80,11 @@
     "required_evidence_ids": ["labor-standards-act-23"]
   },
   {
-    "id": "unsupported_labor_topic",
+    "id": "workplace_harassment_report",
     "question": "직장 내 괴롭힘 신고 절차를 알려주세요.",
     "history": [],
     "in_scope": true,
-    "required_evidence_ids": []
+    "required_evidence_ids": ["labor-standards-act-76-3"]
   },
   {
     "id": "out_of_scope_inheritance",

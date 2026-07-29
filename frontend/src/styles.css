@@ -203,6 +203,11 @@ footer p { margin: 0; color: var(--primary); font-weight: 900; letter-spacing: .
 .social-login.naver:hover { background: #02ad4e; border-color: #02ad4e; }
 .secondary, .link { background: transparent; color: var(--primary); border: 1px solid var(--border); }
 .secondary:hover, .link:hover { color: #fff; background: var(--primary); border-color: var(--primary); }
+.secondary.result-view-button:hover {
+  color: var(--primary);
+  background: #eef1f3;
+  border-color: #c8d0d5;
+}
 .link { width: 100%; margin-top: .5rem; border: 0; }
 .error { color: var(--danger); background: #fbecef; border-left: 3px solid var(--danger); padding: .7rem; border-radius: 6px; }
 
@@ -217,15 +222,16 @@ header {
 }
 header h2 { margin-bottom: 0; }
 .user { display: flex; gap: 1rem; align-items: center; color: var(--primary); font-weight: 700; }
-.grid { display: grid; grid-template-columns: 340px 1fr; gap: 1rem; }
-.upload { grid-row: span 1; }
-.list { grid-row: span 1; max-height: 440px; display: flex; flex-direction: column; overflow: hidden; }
+.grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); align-items: start; gap: 1rem; }
+.workspace-sidebar { min-width: 0; display: grid; align-content: start; gap: 1rem; }
+.upload { align-self: start; }
+.list { align-self: start; width: 100%; max-height: 440px; display: flex; flex-direction: column; overflow: hidden; }
 .list > h3 { flex: none; }
 .contract-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: .4rem; scrollbar-gutter: stable; }
 .contract-list::-webkit-scrollbar { width: 8px; }
 .contract-list::-webkit-scrollbar-thumb { border-radius: 99px; background: #c5cdd3; }
 .contract-list::-webkit-scrollbar-track { background: #f2f4f5; }
-.result { grid-column: 2; grid-row: 1 / span 2; min-height: 560px; }
+.result { align-self: start; min-width: 0; min-height: 560px; }
 .result-title { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
 .upload-button { display: inline-block; margin-top: .6rem; }
 .pdf-drop-zone {
@@ -280,11 +286,77 @@ header h2 { margin-bottom: 0; }
 .contract { display: grid; gap: .8rem; padding: 1rem 0; border-top: 1px solid #ebe7de; }
 .contract-info { min-width: 0; }
 .contract strong { display: block; color: var(--primary); line-height: 1.45; overflow-wrap: anywhere; }
+.contract-file-link {
+  max-width: 100%;
+  padding: 0;
+  color: var(--primary);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: #aebdc7;
+  text-underline-offset: .2rem;
+  overflow-wrap: anywhere;
+}
+.contract-file-link:hover {
+  color: var(--accent);
+  background: transparent;
+  border-color: transparent;
+  text-decoration-color: var(--accent);
+}
 .contract small { display: block; color: var(--muted); }
 .contract-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: .45rem; }
 .contract-actions button { min-width: 0; padding: .55rem .35rem; white-space: nowrap; }
 .danger-outline { color: var(--danger); background: transparent; border-color: #d9aeb6; }
 .danger-outline:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
+.original-pdf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(13, 24, 38, .78);
+}
+.original-pdf-panel {
+  width: min(1120px, 96vw);
+  height: min(900px, 94vh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .25);
+}
+.original-pdf-header {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.original-pdf-header h3 { max-width: 680px; margin: .2rem 0 0; overflow-wrap: anywhere; }
+.original-pdf-header small { color: var(--muted); }
+.original-pdf-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .55rem; }
+.pdf-action-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: .65rem .9rem;
+  color: var(--primary);
+  background: #f2f4f5;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 750;
+  text-decoration: none;
+}
+.pdf-action-link:hover { background: #e6eaed; border-color: #c6cfd5; }
+.original-pdf-body { min-height: 0; display: grid; background: #525659; }
+.original-pdf-body iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+.original-pdf-body .empty, .original-pdf-body .error { align-self: center; justify-self: center; padding: 1rem; background: #fff; border-radius: 8px; }
 .account-delete-trigger { padding: .75rem .3rem; color: var(--danger); background: transparent; border: 0; }
 .account-delete-trigger:hover { color: #fff; background: var(--danger); }
 .account-modal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 1rem; background: rgba(13, 24, 38, .78); }
@@ -366,15 +438,15 @@ blockquote { margin: .8rem 0; padding: .8rem; border-left: 3px solid var(--accen
 .suggestion { width: 100%; padding: .7rem; color: var(--primary); background: #f4f7f8; border-color: #d4dfe4; text-align: left; font-weight: 600; }
 .suggestion:hover { color: #fff; }
 .chat-panel { min-width: 0; height: calc(100vh - 150px); min-height: 620px; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; padding: 0; overflow: hidden; }
-.chat-messages { min-height: 0; overflow-y: auto; padding: 1.5rem; scroll-behavior: smooth; }
+.chat-messages { min-height: 0; overflow-y: auto; padding: 1.25rem 1.4rem; scroll-behavior: smooth; }
 .chat-empty { max-width: 520px; margin: 12vh auto 0; text-align: center; color: var(--muted); }
 .chat-empty > span { display: inline-block; margin-bottom: 1rem; color: var(--accent); font-size: .75rem; font-weight: 900; letter-spacing: .14em; }
-.chat-message { width: min(760px, 88%); margin: 0 0 1.2rem; }
-.chat-message > small { display: block; margin-bottom: .35rem; color: var(--muted); font-weight: 800; }
-.chat-message > div { padding: 1rem; border: 1px solid var(--border); border-radius: 4px 14px 14px 14px; background: #f4f7f8; white-space: pre-wrap; overflow-wrap: anywhere; }
-.chat-message.user { margin-left: auto; }
+.chat-message { width: min(720px, 86%); margin: 0 0 1rem; font-size: .93rem; line-height: 1.65; }
+.chat-message > small { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .72rem; font-weight: 800; }
+.chat-message > div { padding: .72rem .9rem; border: 1px solid var(--border); border-radius: 4px 13px 13px 13px; background: #f4f7f8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-message.user { width: fit-content; max-width: min(620px, 72%); margin-left: auto; }
 .chat-message.user > small { text-align: right; }
-.chat-message.user > div { color: #fff; background: var(--primary); border-color: var(--primary); border-radius: 14px 4px 14px 14px; }
+.chat-message.user > div { padding: .65rem .85rem; color: #fff; background: var(--primary); border-color: var(--primary); border-radius: 13px 4px 13px 13px; }
 .chat-message.pending > div { color: var(--muted); }
 .chat-sources { margin-top: .65rem; padding: .9rem; border: 1px solid #cbd9e0; border-radius: 8px; background: #f7fafb; }
 .chat-sources > strong { display: block; margin-bottom: .55rem; color: var(--primary); }
@@ -436,7 +508,9 @@ blockquote { margin: .8rem 0; padding: .8rem; border-left: 3px solid var(--accen
   .app-shell { padding: 1rem; }
   .grid { grid-template-columns: 1fr; }
   .list { max-height: 420px; }
-  .result { grid-column: auto; grid-row: auto; }
+  .original-pdf-panel { width: 100%; height: 96vh; }
+  .original-pdf-header { gap: .75rem; }
+  .original-pdf-actions { justify-content: flex-start; }
   .upload-ready-actions { grid-template-columns: 1fr; }
   .checklist { grid-template-columns: 1fr; }
   header { align-items: flex-start; }
@@ -446,7 +520,8 @@ blockquote { margin: .8rem 0; padding: .8rem; border-left: 3px solid var(--accen
   .consultation-layout { grid-template-columns: 1fr; }
   .consultation-guide { display: none; }
   .chat-panel { height: calc(100vh - 145px); min-height: 520px; }
-  .chat-message { width: 94%; }
+  .chat-message { width: 92%; }
+  .chat-message.user { width: fit-content; max-width: 86%; }
   .mypage-shell { padding: 1rem; }
   .mypage-grid { grid-template-columns: 1fr; }
   .profile-card { grid-row: auto; }

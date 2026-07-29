@@ -153,7 +153,7 @@ export default function MyPage({
                     <strong>{contract.filename}</strong>
                     <small>{new Date(contract.uploadedAt).toLocaleString("ko-KR")} · {STATUS_LABELS[contract.status] ?? contract.status}</small>
                   </div>
-                  {contract.status === "COMPLETED" && <button className="secondary" onClick={() => onOpenAnalysis(contract.id)}>결과 보기</button>}
+                  {contract.status === "COMPLETED" && <button className="secondary result-view-button" onClick={() => onOpenAnalysis(contract.id)}>결과 보기</button>}
                 </article>
               ))}
           </div>

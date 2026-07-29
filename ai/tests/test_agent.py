@@ -217,3 +217,24 @@ def test_llm_summary_and_compliant_clause_are_not_risk_candidates():
     })
     assert _is_llm_risk_candidate(contract_summary, baseline) is False
     assert _is_llm_risk_candidate(compliant_break, baseline) is False
+
+
+def test_llm_cannot_restore_missing_holiday_when_checklist_has_indirect_evidence():
+    text = """근로계약서
+제4조 근무시간
+월요일~금요일 09:00~18:00 (휴게 12:00~13:00)
+임금은 기본급 2,800,000원으로 매월 지급한다.
+연차휴가는 관계 법령에 따른다.
+"""
+    baseline = analyze_contract(8, text)
+    missing_holiday = ClauseDecision.model_validate({
+        "clause_type": "MISSING_HOLIDAY",
+        "title": "휴일 조항 누락",
+        "original_text": "해당 표현을 찾지 못했습니다.",
+        "risk_level": "MEDIUM",
+        "reason": "계약서에서 휴일 관련 내용이 누락되었습니다.",
+        "recommendation": "휴일을 명확하게 기재하세요.",
+    })
+
+    assert next(item for item in baseline.checklist if item.code == "HOLIDAY").status == "REVIEW"
+    assert _is_llm_risk_candidate(missing_holiday, baseline) is False

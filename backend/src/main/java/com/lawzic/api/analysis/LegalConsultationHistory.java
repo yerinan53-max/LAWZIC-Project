@@ -17,9 +17,10 @@ public class LegalConsultationHistory {
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User user;
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 4000)
     private String question;
-    @Lob @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String responseJson;
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

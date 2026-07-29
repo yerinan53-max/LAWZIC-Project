@@ -1,10 +1,15 @@
 import os
 import re
+import logging
+import threading
 
 from langchain_ollama import ChatOllama
 
 from .schemas import LegalChatMessage, LegalChatResponse, LegalReference
 
+
+logger = logging.getLogger(__name__)
+_LLM_SLOT = threading.BoundedSemaphore(1)
 
 LABOR_SCOPE_TERMS = {
     "근로", "근무", "노동", "회사", "사용자", "사업주", "직장", "직원", "근로자",
@@ -12,6 +17,10 @@ LABOR_SCOPE_TERMS = {
     "연장근로", "야근", "야간근로", "휴일근로", "근로시간", "휴게시간",
     "휴일", "주휴일", "연차", "휴가", "퇴직금", "퇴직급여", "퇴사", "사직",
     "해고", "징계", "감봉", "수습", "근로계약", "위약금", "손해배상",
+    "육아휴직", "출산휴가", "직장 내 괴롭힘", "성희롱", "차별", "기간제", "계약직",
+    "단시간근로", "파견", "산재", "산업재해", "고용보험", "실업급여", "노동조합",
+    "노조", "단체협약", "채용", "외국인근로자", "노사협의회",
+    "권고사직", "사직서", "퇴직 강요", "사직 강요", "부당해고", "해고예고",
 }
 OUT_OF_SCOPE_TERMS = {
     "상속", "상속세", "이혼", "양육권", "부동산", "임대차", "교통사고", "형사",
@@ -22,6 +31,8 @@ STOPWORDS = {
     "회사", "근로자", "사용자", "경우", "그리고", "그러면", "그럼",
 }
 CONSULTATION_TOPICS = (
+    (("수습", "수습기간", "수습 기간", "최저임금", "최저 임금"),
+     {"minimum-wage-act-5", "minimum-wage-enforcement-decree-3"}),
     (("연장근로", "연장 근로", "야근", "초과근로", "주 52시간", "주52시간"),
      {"labor-standards-act-50", "labor-standards-act-53", "labor-standards-act-56"}),
     (("야간근로", "야간 근로", "휴일근로", "휴일 근로", "가산수당", "연장수당"),
@@ -38,23 +49,59 @@ CONSULTATION_TOPICS = (
     (("연차", "유급휴가", "연차수당"),
      {"labor-standards-act-60"}),
     (("퇴직금", "퇴직급여", "중간정산"),
-     {"retirement-benefit-act-8"}),
+     {"retirement-benefit-act-4", "retirement-benefit-act-8"}),
     (("해고", "징계", "감봉", "정직", "전직"),
      {"labor-standards-act-23"}),
+    (("권고사직", "사직서 강요", "사직 강요", "퇴직 강요", "부당해고"),
+     {"labor-standards-act-23", "labor-standards-act-27", "labor-standards-act-28"}),
     (("위약금", "벌금", "손해배상 예정", "계약 불이행"),
      {"labor-standards-act-20"}),
     (("근로조건", "근로계약서", "서면 교부", "계약서 교부"),
      {"labor-standards-act-17"}),
+    (("직장 내 괴롭힘", "직장내 괴롭힘", "괴롭힘 신고"),
+     {"labor-standards-act-76-3"}),
+)
+
+LEGACY_EVIDENCE_CITATIONS = {
+    "labor-standards-act-17": ("근로기준법", "제17조"),
+    "labor-standards-act-20": ("근로기준법", "제20조"),
+    "labor-standards-act-23": ("근로기준법", "제23조"),
+    "labor-standards-act-27": ("근로기준법", "제27조"),
+    "labor-standards-act-28": ("근로기준법", "제28조"),
+    "labor-standards-act-43": ("근로기준법", "제43조"),
+    "labor-standards-act-50": ("근로기준법", "제50조"),
+    "labor-standards-act-53": ("근로기준법", "제53조"),
+    "labor-standards-act-54": ("근로기준법", "제54조"),
+    "labor-standards-act-55": ("근로기준법", "제55조"),
+    "labor-standards-act-56": ("근로기준법", "제56조"),
+    "labor-standards-act-60": ("근로기준법", "제60조"),
+    "labor-standards-act-76-3": ("근로기준법", "제76조의3"),
+    "retirement-benefit-act-4": ("근로자퇴직급여 보장법", "제4조"),
+    "retirement-benefit-act-8": ("근로자퇴직급여 보장법", "제8조"),
+    "minimum-wage-act-5": ("최저임금법", "제5조"),
+    "minimum-wage-enforcement-decree-3": ("최저임금법 시행령", "제3조"),
+}
+
+FOLLOW_UP_TERMS = (
+    "그럼", "그러면", "그 경우", "그때", "앞에서", "위에서",
+    "수당은", "기간은", "금액은", "한도는", "어떻게 지급",
 )
 
 
 def contextualize_legal_question(question: str, history: list[LegalChatMessage]) -> str:
+    current = question.strip()
+    # 현재 질문만으로 주제를 식별할 수 있으면 이전 대화를 섞지 않는다.
+    # 서로 다른 질문의 법령이 합쳐지는 검색 오염을 방지한다.
+    if supported_evidence_ids(current):
+        return current
+    if not any(term in current for term in FOLLOW_UP_TERMS):
+        return current
     previous_questions = [
         item.content.strip()
         for item in history
         if item.role == "user" and item.content.strip()
-    ][-2:]
-    return " ".join([*previous_questions, question.strip()])
+    ][-1:]
+    return " ".join([*previous_questions, current])
 
 
 def is_labor_law_question(question: str, history: list[LegalChatMessage]) -> bool:
@@ -75,6 +122,10 @@ def _query_terms(text: str) -> set[str]:
 
 def supported_evidence_ids(query: str) -> set[str]:
     compact = re.sub(r"\s+", " ", query)
+    if any(term in compact for term in ("수습", "수습기간", "수습 기간")) and any(
+        term in compact for term in ("최저임금", "최저 임금", "적게", "감액", "90%")
+    ):
+        return {"minimum-wage-act-5", "minimum-wage-enforcement-decree-3"}
     if any(term in compact for term in ("임금", "급여", "월급")) and any(
         term in compact for term in ("공제", "차감", "체불", "못 받", "지급일")
     ):
@@ -97,17 +148,25 @@ def filter_consultation_matches(query: str, matches: list[dict]) -> list[dict]:
     min_similarity = float(os.getenv("LEGAL_CHAT_MIN_SIMILARITY", "0.60"))
     query_terms = _query_terms(query)
     allowed_ids = supported_evidence_ids(query)
-    if not allowed_ids:
-        return []
     accepted = []
     seen = set()
     for item in matches:
         evidence_id = item.get("evidence_id") or (
             item.get("law_name"), item.get("article_number")
         )
-        if item.get("evidence_id") not in allowed_ids:
+        allowed_citations = {
+            LEGACY_EVIDENCE_CITATIONS[evidence_id]
+            for evidence_id in allowed_ids
+            if evidence_id in LEGACY_EVIDENCE_CITATIONS
+        }
+        item_citation = (item.get("law_name"), item.get("article_number"))
+        if allowed_ids and (
+            item.get("evidence_id") not in allowed_ids
+            and item_citation not in allowed_citations
+        ):
             continue
-        if evidence_id in seen:
+        seen_key = item_citation if allowed_ids else evidence_id
+        if seen_key in seen:
             continue
         keywords = {
             keyword.strip().lower()
@@ -130,7 +189,7 @@ def filter_consultation_matches(query: str, matches: list[dict]) -> list[dict]:
             continue
         if not term_overlap and not keyword_overlap and similarity < min_similarity:
             continue
-        seen.add(evidence_id)
+        seen.add(seen_key)
         accepted.append(item)
     return accepted
 
@@ -141,6 +200,14 @@ def search_consultation_laws(
     query = contextualize_legal_question(question, history)
     try:
         matches = rag.search(query, top_k=8)
+        allowed_ids = supported_evidence_ids(query)
+        required_citations = {
+            LEGACY_EVIDENCE_CITATIONS[evidence_id]
+            for evidence_id in allowed_ids
+            if evidence_id in LEGACY_EVIDENCE_CITATIONS
+        }
+        if required_citations and hasattr(rag, "get_by_citations"):
+            matches = rag.get_by_citations(required_citations, query) + matches
     except Exception:
         return query, []
     return query, filter_consultation_matches(query, matches)
@@ -189,14 +256,87 @@ def _is_grounded_generated_answer(answer: str, matches: list[dict]) -> bool:
     return True
 
 
-def _fallback_answer(matches: list[dict]) -> str:
-    lines = ["검색된 노동관계 법령에서 다음 내용을 확인할 수 있습니다."]
+def _fallback_answer(matches: list[dict], query: str = "") -> str:
+    evidence_indices = {
+        item.get("evidence_id"): index
+        for index, item in enumerate(matches, start=1)
+    }
+    citation_indices = {
+        (item.get("law_name"), item.get("article_number")): index
+        for index, item in enumerate(matches, start=1)
+    }
+    dismissal_rule = citation_indices.get(("근로기준법", "제23조"))
+    written_notice = citation_indices.get(("근로기준법", "제27조"))
+    remedy = citation_indices.get(("근로기준법", "제28조"))
+    if any(term in query for term in ("권고사직", "사직서 강요", "사직 강요", "퇴직 강요")):
+        lines = [
+            "권고사직은 근로자가 동의해야 성립하므로, 퇴직 의사가 없다면 사직서를 작성하거나 "
+            "서명하지 않는 것이 중요합니다.",
+            "회사의 요구 내용과 거부 의사를 문자·이메일로 남기고, 면담 기록·녹음·메신저 등 "
+            "강요 정황을 보관하세요.",
+        ]
+        if dismissal_rule:
+            lines.append(
+                "회사가 근로자의 의사와 무관하게 근로관계를 종료하면 명칭이 권고사직이더라도 "
+                f"실질적으로 해고인지 검토해야 하며, 정당한 이유 없는 해고는 제한됩니다. [근거 {dismissal_rule}]"
+            )
+        if written_notice:
+            lines.append(
+                "실제로 해고한다면 해고 사유와 시기를 서면으로 통지해 달라고 요청하세요. "
+                f"[근거 {written_notice}]"
+            )
+        if remedy:
+            lines.append(
+                "부당해고라고 판단되면 해고가 있었던 날부터 3개월 이내에 노동위원회에 "
+                f"구제를 신청할 수 있습니다. [근거 {remedy}]"
+            )
+        return "\n".join(lines)
+    retirement_rule = (
+        evidence_indices.get("retirement-benefit-act-4")
+        or citation_indices.get(("근로자퇴직급여 보장법", "제4조"))
+    )
+    retirement_amount = (
+        evidence_indices.get("retirement-benefit-act-8")
+        or citation_indices.get(("근로자퇴직급여 보장법", "제8조"))
+    )
+    if retirement_rule and any(term in query for term in ("1년", "못 다니", "못다니", "퇴직금", "퇴직급여")):
+        answer = (
+            "네. 원칙적으로 계속근로기간이 1년 미만이면 법에서 정한 퇴직급여 지급 대상에서 "
+            f"제외됩니다. 또한 4주간 평균하여 1주 소정근로시간이 15시간 미만인 경우도 제외됩니다. "
+            f"[근거 {retirement_rule}]"
+        )
+        if retirement_amount:
+            answer += (
+                "\n반대로 계속근로기간이 1년 이상이고 주 소정근로시간 요건을 충족하면, "
+                "계속근로기간 1년에 대해 30일분 이상의 평균임금을 기준으로 퇴직금을 산정합니다. "
+                f"[근거 {retirement_amount}]"
+            )
+        answer += "\n근무기간은 일반적으로 입사일부터 퇴직일까지의 계속근로기간을 기준으로 확인해야 합니다."
+        return answer
+
+    probation_law = (
+        evidence_indices.get("minimum-wage-act-5")
+        or citation_indices.get(("최저임금법", "제5조"))
+    )
+    probation_rate = (
+        evidence_indices.get("minimum-wage-enforcement-decree-3")
+        or citation_indices.get(("최저임금법 시행령", "제3조"))
+    )
+    if probation_law and probation_rate:
+        return (
+            "원칙적으로 수습기간에도 최저임금 이상을 지급해야 합니다. 다만 1년 이상의 "
+            "근로계약을 체결한 수습 근로자는 수습 시작일부터 3개월 이내에 한해 시간급 "
+            f"최저임금의 90%를 적용할 수 있습니다. [근거 {probation_law}] "
+            f"[근거 {probation_rate}]\n"
+            "고용노동부장관이 고시한 단순노무직에는 이 감액 특례가 적용되지 않습니다."
+        )
+
+    lines = ["관련 법령을 기준으로 보면 다음과 같습니다."]
     for index, item in enumerate(matches, start=1):
         lines.append(
-            f"- {item['law_name']} {item['article_number']}: "
-            f"{item['content']} [근거 {index}]"
+            f"{item['content']} ({item['law_name']} {item['article_number']}) [근거 {index}]"
         )
-    lines.append("구체적인 적용 여부는 근로형태와 사업장 상황을 추가로 확인해야 합니다.")
+    lines.append("구체적인 적용 여부는 근로 형태와 사실관계를 추가로 확인해야 합니다.")
     return "\n".join(lines)
 
 
@@ -231,9 +371,13 @@ def answer_legal_question(
         f"[근거 {index}] {item['law_name']} {item['article_number']}: {item['content']}"
         for index, item in enumerate(matches, start=1)
     )
-    answer = _fallback_answer(matches)
+    answer = _fallback_answer(matches, search_query)
     used_matches = matches
-    if os.getenv("LAWZIC_LLM_ENABLED", "true").lower() in {"1", "true", "yes", "on"}:
+    llm_enabled = os.getenv("LAWZIC_LLM_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
+    # CPU 기반 Ollama에 여러 상담 요청을 쌓지 않는다. 슬롯이 사용 중이면
+    # 이미 검증한 RAG 법령으로 만든 대체 답변을 즉시 반환한다.
+    use_llm = llm_enabled and _LLM_SLOT.acquire(blocking=False)
+    if use_llm:
         conversation = "\n".join(
             f"{'사용자' if item.role == 'user' else '상담 AI'}: {item.content}"
             for item in history[-8:]
@@ -262,14 +406,19 @@ def answer_legal_question(
                 model=os.getenv("OLLAMA_MODEL", "gemma2:2b"),
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
                 temperature=0,
-                num_predict=800,
+                num_predict=400,
+                client_kwargs={
+                    "timeout": float(os.getenv("OLLAMA_CHAT_TIMEOUT_SECONDS", "45")),
+                },
             ).invoke(prompt).content.strip()
             if _is_grounded_generated_answer(generated, matches):
                 cited = _citation_indices(generated, len(matches))
                 answer = generated
                 used_matches = [matches[index - 1] for index in cited]
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("상담 LLM 호출 실패, RAG 근거 답변으로 전환: %s", type(exc).__name__)
+        finally:
+            _LLM_SLOT.release()
 
     return LegalChatResponse(
         answer=answer,

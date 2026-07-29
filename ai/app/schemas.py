@@ -78,11 +78,11 @@ class QuestionResponse(BaseModel):
 
 class LegalChatMessage(BaseModel):
     role: Literal["user", "assistant"]
-    content: str = Field(min_length=1, max_length=2000)
+    content: str = Field(min_length=1, max_length=8000)
 
 
 class LegalChatRequest(BaseModel):
-    question: str = Field(min_length=2, max_length=500)
+    question: str = Field(min_length=2, max_length=4000)
     history: list[LegalChatMessage] = Field(default_factory=list, max_length=12)
 
 

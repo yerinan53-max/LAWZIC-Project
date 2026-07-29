@@ -7,6 +7,8 @@ const SUGGESTIONS = [
   "퇴직금은 어떤 조건에서 받을 수 있나요?",
   "회사가 임금을 임의로 공제할 수 있나요?",
 ];
+const MAX_QUESTION_LENGTH = 4000;
+const CONSULTATION_TIMEOUT_MS = 75000;
 
 function storedMessages(key) {
   try {
@@ -39,10 +41,13 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
     setError("");
     setBusy(true);
     setMessages(value => [...value, { role: "user", content: current }]);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), CONSULTATION_TIMEOUT_MS);
     try {
       const response = await api("/legal-consultation/messages", {
         method: "POST",
         body: JSON.stringify({ question: current, history }),
+        signal: controller.signal,
       });
       setMessages(value => [...value, {
         role: "assistant",
@@ -52,8 +57,11 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
         insufficientEvidence: response.insufficient_evidence,
       }]);
     } catch (requestError) {
-      setError(requestError.message);
+      setError(requestError.name === "AbortError"
+        ? "상담 응답 시간이 초과되었습니다. 잠시 후 다시 질문해 주세요."
+        : requestError.message);
     } finally {
+      window.clearTimeout(timeout);
       setBusy(false);
     }
   };
@@ -129,10 +137,10 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
               }
             }}
             placeholder="노동법 질문을 입력하세요. Shift+Enter로 줄바꿈"
-            maxLength="500"
+            maxLength={MAX_QUESTION_LENGTH}
             rows="3"
           />
-          <div><small>{question.length}/500</small><button disabled={busy || question.trim().length < 2}>질문 보내기</button></div>
+          <div><small>{question.length.toLocaleString()}/{MAX_QUESTION_LENGTH.toLocaleString()}</small><button disabled={busy || question.trim().length < 2}>질문 보내기</button></div>
         </form>
       </section>
     </main>

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from .analyzer import (
     analyze_contract, calculate_verified_risk, deduplicate_findings, is_negated_risk_text,
+    reconcile_checklist_findings,
 )
 from .rag import LawRagService
 from .schemas import AnalysisResponse, LegalReference, RiskClause, RiskLevel, SemanticEvidence
@@ -178,6 +179,10 @@ def _is_llm_risk_candidate(item: ClauseDecision, baseline: AnalysisResponse) -> 
     ):
         return True
     candidate_text = f"{item.title} {item.original_text} {item.reason}"
+    category = _clause_category(item)
+    if category in {"WAGE", "WORK_HOURS", "HOLIDAY", "ANNUAL_LEAVE"} and "누락" in candidate_text:
+        check = _checklist_item(baseline, category)
+        return check is not None and check.status == "MISSING"
     return any(marker in candidate_text for marker in ADVERSE_RISK_MARKERS)
 
 
@@ -361,7 +366,9 @@ class ContractAnalysisAgent:
             if clause.clause_type.upper() not in llm_clause_types:
                 clause.legal_references = _best_references(state.get("evidence", []), clause.title)
                 clauses.append(clause)
-        clauses = deduplicate_findings(clauses)
+        clauses = reconcile_checklist_findings(
+            deduplicate_findings(clauses), baseline.checklist,
+        )
         score, level, review_count = calculate_verified_risk(clauses)
         return {"result": AnalysisResponse(
             contract_id=state["contract_id"],

@@ -7,6 +7,7 @@ import com.lawzic.api.contract.Contract;
 import com.lawzic.api.contract.ContractRepository;
 import com.lawzic.api.contract.ContractService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PreDestroy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.concurrent.Future;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnalysisService {
     private final ContractService contractService;
     private final ContractRepository contracts;
@@ -60,6 +62,7 @@ public class AnalysisService {
                 contracts.save(contract);
             }
         } catch (Exception ex) {
+            log.error("계약서 AI 분석 처리 실패: contractId={}", contractId, ex);
             synchronized (this) {
                 if (cancelled.contains(contractId) || Thread.currentThread().isInterrupted()) return;
                 contracts.findById(contractId).ifPresent(contract -> {
