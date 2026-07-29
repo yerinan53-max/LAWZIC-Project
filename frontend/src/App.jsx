@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { api, clearToken, getToken } from "./api/client";
+import { api, clearLawzicSession, clearToken, getToken } from "./api/client";
 import ContractWorkspacePage from "./pages/ContractWorkspacePage";
 import HomePage from "./pages/HomePage";
 import LegalConsultationPage from "./pages/LegalConsultationPage";
@@ -49,6 +49,16 @@ export default function App() {
     navigate("/", { replace: true });
   };
 
+  const deleteAccount = async password => {
+    await api("/auth/me", {
+      method: "DELETE",
+      body: JSON.stringify({ password }),
+    });
+    clearLawzicSession();
+    setUser(null);
+    navigate("/", { replace: true });
+  };
+
   if (checking) {
     return <main className="loading-screen"><p className="brand-logo">LAW<span>Z</span>IC</p><span>사용자 정보를 확인하고 있습니다.</span></main>;
   }
@@ -81,6 +91,7 @@ export default function App() {
         onHome={showHome}
         onLogout={logout}
         onConsultation={() => navigate("/legal-consultation")}
+        onDeleteAccount={deleteAccount}
       />
     </ProtectedRoute>}/>
     <Route path="/contracts/:contractId/analysis" element={<ProtectedRoute user={user}>
@@ -89,6 +100,7 @@ export default function App() {
         onHome={showHome}
         onLogout={logout}
         onConsultation={() => navigate("/legal-consultation")}
+        onDeleteAccount={deleteAccount}
       />
     </ProtectedRoute>}/>
     <Route path="/legal-consultation" element={<ProtectedRoute user={user}>
@@ -97,6 +109,7 @@ export default function App() {
         onHome={showHome}
         onWorkspace={() => navigate("/contracts")}
         onLogout={logout}
+        onDeleteAccount={deleteAccount}
       />
     </ProtectedRoute>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>

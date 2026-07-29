@@ -3,6 +3,13 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api";
 export function getToken() { return sessionStorage.getItem("accessToken"); }
 export function setToken(token) { sessionStorage.setItem("accessToken", token); }
 export function clearToken() { sessionStorage.removeItem("accessToken"); }
+export function clearLawzicSession() {
+  for (const key of Object.keys(sessionStorage)) {
+    if (key === "accessToken" || key.startsWith("lawzic-")) {
+      sessionStorage.removeItem(key);
+    }
+  }
+}
 
 export async function api(path, options = {}) {
   const headers = new Headers(options.headers ?? {});

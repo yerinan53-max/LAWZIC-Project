@@ -256,6 +256,20 @@ header h2 { margin-bottom: 0; }
 .contract-actions button { min-width: 0; padding: .55rem .35rem; white-space: nowrap; }
 .danger-outline { color: var(--danger); background: transparent; border-color: #d9aeb6; }
 .danger-outline:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
+.account-delete-trigger { padding: .75rem .3rem; color: var(--danger); background: transparent; border: 0; }
+.account-delete-trigger:hover { color: #fff; background: var(--danger); }
+.account-modal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 1rem; background: rgba(13, 24, 38, .78); }
+.account-delete-card { width: min(520px, 100%); max-height: calc(100vh - 2rem); overflow-y: auto; text-align: left; }
+.danger-kicker { color: var(--danger); font-size: .7rem; font-weight: 900; letter-spacing: .14em; }
+.account-delete-card h2 { margin: .45rem 0 1rem; }
+.account-delete-card > p, .account-delete-card li { color: var(--muted); }
+.account-delete-card form { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.account-delete-card label { display: grid; gap: .4rem; color: var(--primary); font-weight: 700; }
+.account-delete-card input { width: 100%; padding: .8rem; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+.account-delete-card input:focus { border-color: var(--accent); outline: 0; box-shadow: 0 0 0 3px rgba(84, 115, 140, .14); }
+.account-delete-actions { display: grid; grid-template-columns: 1fr 1.6fr; gap: .6rem; }
+.delete-account-confirm { background: var(--danger); border-color: var(--danger); }
+.delete-account-confirm:hover { background: #6f1826; border-color: #6f1826; }
 .cancel-button { color: #fff; background: var(--danger); border-color: var(--danger); }
 .cancel-button:hover { background: #6f1826; border-color: #6f1826; }
 

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Comparator;
 import java.util.UUID;
 
 @Service
@@ -47,6 +48,22 @@ public class ContractService {
     public Contract owned(Long id, String email) {
         return contracts.findByIdAndUserEmail(id, email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계약서를 찾을 수 없습니다."));
+    }
+
+    public void deleteUserUploadDirectory(Long userId) {
+        Path uploadRoot = Path.of(uploadDir).toAbsolutePath().normalize();
+        Path userDirectory = uploadRoot.resolve(userId.toString()).normalize();
+        if (!userDirectory.startsWith(uploadRoot) || userDirectory.equals(uploadRoot)) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 파일 경로가 안전하지 않습니다.");
+        }
+        if (!Files.exists(userDirectory)) return;
+        try (var paths = Files.walk(userDirectory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 업로드 폴더 삭제에 실패했습니다.");
+        }
     }
 
     @Transactional

@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import AccountDeletionButton from "../components/AccountDeletionButton";
 import ContractAnalysisPage from "./ContractAnalysisPage";
 import ContractHistoryPage from "./ContractHistoryPage";
 import PdfUploadPage from "./PdfUploadPage";
 import useContractWorkspace from "../hooks/useContractWorkspace";
 
-export default function ContractWorkspacePage({user, onLogout, onHome, onConsultation}) {
+export default function ContractWorkspacePage({user, onLogout, onHome, onConsultation, onDeleteAccount}) {
   const { contractId } = useParams();
   const navigate = useNavigate();
   const routedContract = useRef(null);
@@ -56,7 +57,7 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
         <button className="brand-home" onClick={onHome} aria-label="LAWZIC 메인화면으로 이동"><span className="brand-logo">LA<span>WZ</span>IC</span></button>
         <h2>계약서 분석실</h2>
       </div>
-      <div className="user"><span>{user?.name ?? user?.email}님</span><button className="secondary" onClick={onConsultation}>법률 AI 상담</button><button className="secondary" onClick={onLogout}>로그아웃</button></div>
+      <div className="user"><span>{user?.name ?? user?.email}님</span><button className="secondary" onClick={onConsultation}>법률 AI 상담</button><button className="secondary" onClick={onLogout}>로그아웃</button><AccountDeletionButton onDeleteAccount={onDeleteAccount}/></div>
     </header>
     <main className="grid">
       <PdfUploadPage

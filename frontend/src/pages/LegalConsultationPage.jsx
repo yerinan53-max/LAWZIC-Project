@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
+import AccountDeletionButton from "../components/AccountDeletionButton";
 
 const SUGGESTIONS = [
   "연장근로는 일주일에 몇 시간까지 가능한가요?",
@@ -17,7 +18,7 @@ function storedMessages(key) {
   }
 }
 
-export default function LegalConsultationPage({ user, onHome, onWorkspace, onLogout }) {
+export default function LegalConsultationPage({ user, onHome, onWorkspace, onLogout, onDeleteAccount }) {
   const storageKey = useMemo(() => `lawzic-legal-chat:${user.email}`, [user.email]);
   const [messages, setMessages] = useState(() => storedMessages(storageKey));
   const [question, setQuestion] = useState("");
@@ -75,6 +76,7 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
         <button className="secondary" onClick={onWorkspace}>계약서 분석실</button>
         <button className="secondary" onClick={reset}>새 대화</button>
         <button className="secondary" onClick={onLogout}>로그아웃</button>
+        <AccountDeletionButton onDeleteAccount={onDeleteAccount}/>
       </div>
     </header>
 

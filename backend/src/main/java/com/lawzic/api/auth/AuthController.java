@@ -21,6 +21,7 @@ public class AuthController {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AccountService accountService;
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
@@ -43,6 +44,20 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponse me(Principal principal) {
         return toResponse(users.findByEmail(principal.getName()).orElseThrow());
+    }
+
+    public record DeleteAccountRequest(String password) {}
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAccount(
+            @RequestBody DeleteAccountRequest request,
+            Principal principal
+    ) {
+        accountService.deleteAccount(
+                principal.getName(),
+                request == null ? null : request.password()
+        );
     }
 
     private UserResponse toResponse(User user) { return new UserResponse(user.getId(), user.getEmail(), user.getName()); }
