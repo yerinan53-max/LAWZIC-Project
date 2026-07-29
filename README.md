@@ -82,7 +82,8 @@ LLM 또는 Ollama 호출에 실패하면 서비스가 중단되지 않고 규칙
 
 ```powershell
 cd ai
-$env:LAW_OPEN_API_OC="국가법령정보 공동활용 인증값"
+Copy-Item .env.example .env
+# .env의 LAW_OPEN_API_OC에 발급받은 인증값 입력
 .\.venv\Scripts\python.exe -m scripts.sync_laws --ingest
 ```
 

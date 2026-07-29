@@ -34,6 +34,18 @@
     "required_evidence_ids": ["labor-standards-act-43"]
   },
   {
+    "id": "performance_based_base_wage_reduction",
+    "question": "성과가 부족하다는 이유로 이미 정해진 기본급을 깎을 수 있나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": [
+      "labor-standards-act-17",
+      "labor-standards-act-43",
+      "labor-standards-act-94",
+      "labor-standards-act-95"
+    ]
+  },
+  {
     "id": "break_time",
     "question": "8시간 근무하면 휴게시간은 얼마나 받아야 하나요?",
     "history": [],

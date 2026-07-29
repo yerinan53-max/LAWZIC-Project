@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 
+from app import config as _config
 from app.rag import LawRagService
 from app.rag.law_source import (
     LawOpenApiClient,

@@ -23,13 +23,24 @@ LAWZIC의 운영 RAG는 국가법령정보센터 국가법령정보 공동활용
 
 ## 최초 구축 및 법령 갱신
 
-국가법령정보 공동활용 사이트에서 API 활용 신청 후 인증값을 환경변수로 설정한다.
+국가법령정보 공동활용 사이트에서 API 활용 신청 후 `ai/.env`에 인증값을 설정한다.
 
 ```powershell
 cd "C:\Users\human-21\Documents\Final Project\ai"
-$env:LAW_OPEN_API_OC="발급받은 인증값"
+Copy-Item .env.example .env
+notepad .env
 .\.venv\Scripts\python.exe -m scripts.sync_laws --ingest
 ```
+
+`.env`에는 다음 값을 입력한다.
+
+```env
+LAW_OPEN_API_OC=발급받은_실제_인증값
+```
+
+AI 서버와 `sync_laws`, `ingest_laws` 스크립트는 시작할 때 `ai/.env`를 자동으로
+읽는다. 운영 서버에서 이미 설정한 환경변수가 있으면 `.env`보다 운영 환경변수를
+우선한다.
 
 이 명령은 매번 국가법령정보센터의 현행 법령을 조회한다. corpus 내용이 변경되면
 매니페스트 해시가 바뀌며 ChromaDB를 새 데이터로 재적재한다.

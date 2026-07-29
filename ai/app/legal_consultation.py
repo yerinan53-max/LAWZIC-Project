@@ -13,7 +13,8 @@ _LLM_SLOT = threading.BoundedSemaphore(1)
 
 LABOR_SCOPE_TERMS = {
     "근로", "근무", "노동", "회사", "사용자", "사업주", "직장", "직원", "근로자",
-    "임금", "급여", "월급", "수당", "최저임금", "공제", "체불",
+    "임금", "급여", "월급", "기본급", "성과급", "상여금", "수당", "최저임금",
+    "공제", "체불", "감액", "삭감", "감급", "깎",
     "연장근로", "야근", "야간근로", "휴일근로", "근로시간", "휴게시간",
     "휴일", "주휴일", "연차", "휴가", "퇴직금", "퇴직급여", "퇴사", "사직",
     "해고", "징계", "감봉", "수습", "근로계약", "위약금", "손해배상",
@@ -40,6 +41,10 @@ CONSULTATION_TOPICS = (
     (("임금 공제", "급여 공제", "월급 공제", "임의 공제", "임금체불", "임금 체불",
       "급여체불", "월급을 못", "임금을 못", "지급일"),
      {"labor-standards-act-43"}),
+    (("기본급", "급여 삭감", "임금 삭감", "월급 삭감", "임금 감액", "급여 감액",
+      "월급 감액", "감급", "임금을 깎", "급여를 깎", "월급을 깎", "기본급을 깎"),
+     {"labor-standards-act-17", "labor-standards-act-43",
+      "labor-standards-act-94", "labor-standards-act-95"}),
     (("근로시간", "근무시간", "주 40시간", "1일 8시간"),
      {"labor-standards-act-50", "labor-standards-act-53"}),
     (("휴게시간", "휴식시간", "점심시간"),
@@ -69,6 +74,8 @@ LEGACY_EVIDENCE_CITATIONS = {
     "labor-standards-act-27": ("근로기준법", "제27조"),
     "labor-standards-act-28": ("근로기준법", "제28조"),
     "labor-standards-act-43": ("근로기준법", "제43조"),
+    "labor-standards-act-94": ("근로기준법", "제94조"),
+    "labor-standards-act-95": ("근로기준법", "제95조"),
     "labor-standards-act-50": ("근로기준법", "제50조"),
     "labor-standards-act-53": ("근로기준법", "제53조"),
     "labor-standards-act-54": ("근로기준법", "제54조"),
@@ -113,6 +120,19 @@ def is_labor_law_question(question: str, history: list[LegalChatMessage]) -> boo
     ))
 
 
+def is_consultation_in_scope(
+    question: str,
+    history: list[LegalChatMessage],
+    relevant_law_matches: list[dict],
+) -> bool:
+    """키워드 또는 실제 관련 법령 검색 결과로 상담 범위를 판정한다."""
+    current_has_labor_term = any(term in question for term in LABOR_SCOPE_TERMS)
+    current_has_other_domain = any(term in question for term in OUT_OF_SCOPE_TERMS)
+    if current_has_other_domain and not current_has_labor_term:
+        return False
+    return is_labor_law_question(question, history) or bool(relevant_law_matches)
+
+
 def _query_terms(text: str) -> set[str]:
     return {
         token for token in re.findall(r"[가-힣A-Za-z0-9]+", text.lower())
@@ -130,6 +150,17 @@ def supported_evidence_ids(query: str) -> set[str]:
         term in compact for term in ("공제", "차감", "체불", "못 받", "지급일")
     ):
         return {"labor-standards-act-43"}
+    wage_reduction_objects = ("임금", "급여", "월급", "기본급", "성과급", "상여금")
+    wage_reduction_actions = ("깎", "삭감", "감액", "감급", "줄이", "낮추")
+    if any(term in compact for term in wage_reduction_objects) and any(
+        term in compact for term in wage_reduction_actions
+    ):
+        return {
+            "labor-standards-act-17",
+            "labor-standards-act-43",
+            "labor-standards-act-94",
+            "labor-standards-act-95",
+        }
     overtime_terms = ("연장근로", "연장 근로", "야근", "초과근로")
     if any(term in compact for term in overtime_terms):
         if any(term in compact for term in ("수당", "임금", "가산", "지급")):
@@ -265,6 +296,22 @@ def _fallback_answer(matches: list[dict], query: str = "") -> str:
         (item.get("law_name"), item.get("article_number")): index
         for index, item in enumerate(matches, start=1)
     }
+    wage_payment_rule = citation_indices.get(("근로기준법", "제43조"))
+    wage_object = any(term in query for term in ("임금", "급여", "월급", "기본급"))
+    wage_deduction_action = any(term in query for term in ("공제", "차감", "빼"))
+    if wage_payment_rule and wage_object and wage_deduction_action:
+        return (
+            "원칙적으로 회사는 법령이나 단체협약상 근거 없이 근로자의 임금을 "
+            f"임의로 공제할 수 없습니다. [근거 {wage_payment_rule}]\n"
+            "근로기준법 제43조는 임금을 근로자에게 전액 지급하도록 정하고 있으며, "
+            "법령 또는 단체협약에 특별한 규정이 있는 경우에만 임금 일부를 공제할 수 "
+            f"있도록 예외를 두고 있습니다. [근거 {wage_payment_rule}]\n"
+            "따라서 지각, 업무상 실수, 회사 장비 파손이나 손해 발생 등을 이유로 회사가 "
+            "손해액을 일방적으로 정해 월급에서 바로 빼는 경우에는 위 전액 지급 원칙에 "
+            f"위반되는지 검토해야 합니다. [근거 {wage_payment_rule}]\n"
+            "실제 공제 명목, 금액, 적용된 법령 또는 단체협약 조항과 근로자의 의사에 "
+            "반해 일방적으로 처리됐는지를 확인하는 것이 중요합니다."
+        )
     dismissal_rule = citation_indices.get(("근로기준법", "제23조"))
     written_notice = citation_indices.get(("근로기준법", "제27조"))
     remedy = citation_indices.get(("근로기준법", "제28조"))
@@ -344,7 +391,10 @@ def answer_legal_question(
     question: str, history: list[LegalChatMessage], rag,
 ) -> LegalChatResponse:
     warning = "검색된 노동관계 법령에 근거한 참고 답변이며 법률 자문이나 법적 판단을 대체하지 않습니다."
-    if not is_labor_law_question(question, history):
+    # 키워드 화이트리스트만으로 먼저 차단하지 않는다. 질문을 법령 RAG에 검색한 뒤,
+    # 충분히 관련된 노동법 조문이 확인되면 새로운 표현도 상담 범위로 인정한다.
+    search_query, matches = search_consultation_laws(question, history, rag)
+    if not is_consultation_in_scope(question, history, matches):
         return LegalChatResponse(
             answer=(
                 "현재 상담은 임금, 근로시간, 휴일·휴가, 해고, 퇴직금 등 "
@@ -355,7 +405,6 @@ def answer_legal_question(
             insufficient_evidence=True,
         )
 
-    search_query, matches = search_consultation_laws(question, history, rag)
     if not matches:
         return LegalChatResponse(
             answer=(
@@ -377,6 +426,10 @@ def answer_legal_question(
     # CPU 기반 Ollama에 여러 상담 요청을 쌓지 않는다. 슬롯이 사용 중이면
     # 이미 검증한 RAG 법령으로 만든 대체 답변을 즉시 반환한다.
     use_llm = llm_enabled and _LLM_SLOT.acquire(blocking=False)
+    if not llm_enabled:
+        logger.info("상담 LLM 비활성화: 검증된 RAG 대체 답변 사용")
+    elif not use_llm:
+        logger.info("상담 LLM 슬롯 사용 중: 검증된 RAG 대체 답변 사용")
     if use_llm:
         conversation = "\n".join(
             f"{'사용자' if item.role == 'user' else '상담 AI'}: {item.content}"
@@ -384,6 +437,7 @@ def answer_legal_question(
         )
         prompt = f"""당신은 대한민국 노동법 정보를 안내하는 LAWZIC 상담 AI입니다.
 아래 검색된 법령 근거만 사용하여 한국어로 답하세요.
+먼저 결론을 한 문장으로 제시하고, 이후 법적 근거와 예외를 설명하세요.
 법령 근거에 없는 사실, 판례, 숫자 또는 절차를 추측하지 마세요.
 각 사실 설명 문장 끝에 반드시 사용한 [근거 N]을 표시하세요.
 사용하지 않은 근거는 인용하지 마세요.
@@ -415,8 +469,18 @@ def answer_legal_question(
                 cited = _citation_indices(generated, len(matches))
                 answer = generated
                 used_matches = [matches[index - 1] for index in cited]
+            else:
+                logger.warning(
+                    "상담 LLM 답변 근거 검증 탈락: answer_length=%d, valid_citations=%s",
+                    len(generated),
+                    _citation_indices(generated, len(matches)),
+                )
         except Exception as exc:
-            logger.warning("상담 LLM 호출 실패, RAG 근거 답변으로 전환: %s", type(exc).__name__)
+            logger.warning(
+                "상담 LLM 호출 실패, RAG 근거 답변으로 전환: %s: %s",
+                type(exc).__name__,
+                exc,
+            )
         finally:
             _LLM_SLOT.release()
 

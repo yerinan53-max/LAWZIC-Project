@@ -9,6 +9,7 @@ from app.legal_consultation import (
     _fallback_answer,
     _is_grounded_generated_answer,
     answer_legal_question,
+    is_consultation_in_scope,
     is_labor_law_question,
     search_consultation_laws,
 )
@@ -63,6 +64,41 @@ def test_low_relevance_law_is_removed_before_llm(monkeypatch):
     assert result.legal_references == []
 
 
+def test_unseen_labor_expression_is_accepted_by_relevant_rag_result(monkeypatch):
+    class SemanticWageRag:
+        def search(self, query, top_k=8):
+            return [{
+                "evidence_id": "semantic-wage-result",
+                "law_name": "근로기준법",
+                "article_number": "제43조",
+                "content": "임금은 근로자에게 그 전액을 지급하여야 한다.",
+                "keywords": "임금|전액 지급",
+                "similarity": 0.91,
+                "hybrid_score": 0.88,
+            }]
+
+    question = "평가가 나쁘다고 받기로 한 돈을 줄인대요. 가능한가요?"
+    assert is_labor_law_question(question, []) is False
+    query, matches = search_consultation_laws(question, [], SemanticWageRag())
+    assert query == question
+    assert is_consultation_in_scope(question, [], matches) is True
+
+    monkeypatch.setenv("LAWZIC_LLM_ENABLED", "false")
+    result = answer_legal_question(question, [], SemanticWageRag())
+    assert result.insufficient_evidence is False
+    assert result.legal_references[0].article_number == "제43조"
+    assert "노동법 질문만 지원합니다" not in result.answer
+
+
+def test_explicit_other_legal_domain_is_rejected_even_if_rag_is_noisy():
+    noisy_match = [{
+        "law_name": "근로기준법",
+        "article_number": "제43조",
+        "content": "임금은 전액 지급하여야 한다.",
+    }]
+    assert is_consultation_in_scope("상속세 신고 방법을 알려주세요.", [], noisy_match) is False
+
+
 def test_new_explicit_topic_does_not_inherit_previous_overtime_question(law_rag):
     history = [
         LegalChatMessage(role="user", content="연장근로는 일주일에 몇 시간까지 가능한가요?"),
@@ -103,6 +139,27 @@ def test_severance_fallback_answers_worker_question_directly():
     assert "[근거 2]" in answer
 
 
+def test_wage_deduction_fallback_starts_with_direct_conclusion():
+    matches = [{
+        "evidence_id": "labor-standards-act-43",
+        "law_name": "근로기준법",
+        "article_number": "제43조",
+        "content": (
+            "임금은 통화로 직접 근로자에게 그 전액을 지급하여야 한다. "
+            "다만, 법령 또는 단체협약에 특별한 규정이 있는 경우에는 "
+            "임금의 일부를 공제할 수 있다."
+        ),
+    }]
+    answer = _fallback_answer(matches, "회사가 임금을 임의로 공제할 수 있나요?")
+    assert answer.startswith("원칙적으로 회사는")
+    assert "임의로 공제할 수 없습니다" in answer.splitlines()[0]
+    assert "법령 또는 단체협약" in answer
+    assert "지각" in answer
+    assert "장비 파손" in answer
+    assert "근로 형태와 사실관계" not in answer
+    assert "[근거 1]" in answer
+
+
 def test_forced_resignation_fallback_gives_actionable_steps():
     matches = [
         {"evidence_id": "x23", "law_name": "근로기준법", "article_number": "제23조", "content": "정당한 이유 없는 해고 금지"},
@@ -141,6 +198,8 @@ def test_generated_answer_must_use_valid_grounded_citations():
 
 
 def test_response_exposes_only_sources_actually_cited_by_model(monkeypatch):
+    received_prompts = []
+
     class TwoLawRag:
         def search(self, query, top_k=8):
             return [
@@ -166,6 +225,7 @@ def test_response_exposes_only_sources_actually_cited_by_model(monkeypatch):
 
     class CitedLlm:
         def invoke(self, prompt):
+            received_prompts.append(prompt)
             class Response:
                 content = "연장근로는 합의가 있는 경우 1주 12시간 한도입니다. [근거 2]"
             return Response()
@@ -177,6 +237,7 @@ def test_response_exposes_only_sources_actually_cited_by_model(monkeypatch):
     result = answer_legal_question(
         "연장근로는 일주일에 몇 시간까지 가능한가요?", [], TwoLawRag(),
     )
+    assert "먼저 결론을 한 문장으로 제시하고, 이후 법적 근거와 예외를 설명하세요." in received_prompts[0]
     assert [item.article_number for item in result.legal_references] == ["제53조"]
 
 

@@ -1,3 +1,4 @@
+from app import config as _config
 from app.rag import LawRagService
 
 

@@ -3,6 +3,7 @@ from fastapi.responses import Response
 
 from starlette.concurrency import run_in_threadpool
 
+from . import config as _config
 from .agent import ContractAnalysisAgent
 from .document_features import answer_legal_question, answer_question, create_report, enrich_locations
 from .pdf_service import PdfReadError, extract_document
