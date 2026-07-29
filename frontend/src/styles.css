@@ -183,7 +183,10 @@ footer p { margin: 0; color: var(--primary); font-weight: 900; letter-spacing: .
 .consent-item summary label { display: flex; align-items: center; gap: .55rem; cursor: pointer; }
 .consent-item summary b { margin-right: .2rem; color: var(--danger); font-size: .75rem; }
 .consent-item summary > span { flex: none; color: var(--muted); font-size: .78rem; text-decoration: underline; }
-.consent-item > p { margin: .85rem 0 0; padding: .9rem; color: var(--muted); background: #f7f8f9; border-radius: 7px; white-space: pre-line; font-size: .82rem; line-height: 1.7; }
+.consent-content { max-height: 270px; margin-top: .85rem; padding: .9rem; overflow-y: auto; color: var(--muted); background: #f7f8f9; border-radius: 7px; font-size: .82rem; line-height: 1.7; scrollbar-gutter: stable; }
+.consent-content section + section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e6e8; }
+.consent-content strong { color: var(--primary); }
+.consent-content p { margin: .3rem 0 0; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
 .auth-links { display: flex; justify-content: center; align-items: center; margin-top: .75rem; color: var(--muted); }
 .auth-links .link { width: auto; margin: 0; padding: .35rem .55rem; }
 .recovery-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: 1.5rem; padding: .3rem; background: #eef2f4; border-radius: 9px; }
@@ -198,8 +201,6 @@ footer p { margin: 0; color: var(--primary); font-weight: 900; letter-spacing: .
 .social-login.google:hover { background: #f4f5f6; }
 .social-login.naver { color: #fff; background: #03c75a; border-color: #03c75a; }
 .social-login.naver:hover { background: #02ad4e; border-color: #02ad4e; }
-.consent-box.compact .consent-all + .consent-all { border-top: 1px solid var(--border); border-bottom: 0; }
-.oauth-consent-note { font-size: .8rem; }
 .secondary, .link { background: transparent; color: var(--primary); border: 1px solid var(--border); }
 .secondary:hover, .link:hover { color: #fff; background: var(--primary); border-color: var(--primary); }
 .link { width: 100%; margin-top: .5rem; border: 0; }

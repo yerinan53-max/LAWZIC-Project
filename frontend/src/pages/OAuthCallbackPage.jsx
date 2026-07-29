@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, setToken } from "../api/client";
+import RequiredConsentBox from "../components/RequiredConsentBox";
 
 export default function OAuthCallbackPage({ ticket, providerError, onLogin, onHome }) {
   const [status, setStatus] = useState(null);
@@ -82,11 +83,7 @@ export default function OAuthCallbackPage({ ticket, providerError, onLogin, onHo
     {status?.consentRequired && <>
       <p className="privacy-notice">소셜 계정 인증이 완료되었습니다. LAWZIC 신규 가입을 위해 필수 약관에 동의해 주세요.</p>
       <form onSubmit={register}>
-        <section className="consent-box compact">
-          <label className="consent-all"><input type="checkbox" checked={consents.termsAgreed} onChange={event => setConsents({ ...consents, termsAgreed: event.target.checked })} /><span><b>필수</b> LAWZIC 서비스 이용약관 동의</span></label>
-          <label className="consent-all"><input type="checkbox" checked={consents.privacyAgreed} onChange={event => setConsents({ ...consents, privacyAgreed: event.target.checked })} /><span><b>필수</b> 개인정보 수집 및 이용 동의</span></label>
-        </section>
-        <p className="muted oauth-consent-note">수집 항목은 이름·이메일·서비스 이용 기록이며, 회원 식별과 계약서 분석·상담 제공 목적으로 회원 탈퇴 시까지 보관합니다.</p>
+        <RequiredConsentBox value={consents} onChange={changes => setConsents({ ...consents, ...changes })} />
         <button disabled={busy || !consents.termsAgreed || !consents.privacyAgreed}>동의하고 가입</button>
       </form>
     </>}
