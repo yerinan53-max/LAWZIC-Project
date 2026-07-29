@@ -29,6 +29,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final AccountService accountService;
     private final AccountRecoveryService recoveryService;
+    private final OAuthLoginService oauthLoginService;
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
@@ -47,7 +48,8 @@ public class AuthController {
         User user = users.findByEmail(request.email().trim().toLowerCase())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."));
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        if (user.getPasswordHash() == null ||
+                !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
@@ -61,6 +63,13 @@ public class AuthController {
     public record PasswordResetRequest(@Email @NotBlank String email) {}
     public record PasswordResetConfirmRequest(@NotBlank String token,
                                               @Size(min = 8, max = 72) String newPassword) {}
+    public record OAuthTicketRequest(@NotBlank String ticket) {}
+    public record OAuthLinkRequest(@NotBlank String ticket, @Email @NotBlank String email,
+                                   @NotBlank String password) {}
+    public record OAuthRegistrationRequest(@NotBlank String ticket, boolean termsAgreed,
+                                           boolean privacyAgreed) {}
+    public record OAuthTicketResponse(boolean linkingRequired, boolean consentRequired,
+                                      String provider, String maskedEmail) {}
 
     @PostMapping("/find-login-id")
     public RecoveryMessage findLoginId(@Valid @RequestBody FindLoginIdRequest request) {
@@ -78,6 +87,29 @@ public class AuthController {
     public RecoveryMessage confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
         recoveryService.resetPassword(request.token(), request.newPassword());
         return new RecoveryMessage("비밀번호가 변경되었습니다. 새 비밀번호로 로그인하세요.");
+    }
+
+    @PostMapping("/oauth/ticket")
+    public OAuthTicketResponse inspectOAuthTicket(@Valid @RequestBody OAuthTicketRequest request) {
+        var status = oauthLoginService.inspect(request.ticket());
+        return new OAuthTicketResponse(status.linkingRequired(), status.consentRequired(),
+                status.provider(), status.maskedEmail());
+    }
+
+    @PostMapping("/oauth/exchange")
+    public AuthResponse exchangeOAuthTicket(@Valid @RequestBody OAuthTicketRequest request) {
+        return authResponse(oauthLoginService.exchange(request.ticket()));
+    }
+
+    @PostMapping("/oauth/link")
+    public AuthResponse linkOAuthAccount(@Valid @RequestBody OAuthLinkRequest request) {
+        return authResponse(oauthLoginService.link(request.ticket(), request.email(), request.password()));
+    }
+
+    @PostMapping("/oauth/register")
+    public AuthResponse registerOAuthAccount(@Valid @RequestBody OAuthRegistrationRequest request) {
+        return authResponse(oauthLoginService.register(
+                request.ticket(), request.termsAgreed(), request.privacyAgreed()));
     }
 
     @GetMapping("/me")
@@ -106,5 +138,10 @@ public class AuthController {
 
     private UserResponse toResponse(User user) {
         return new UserResponse(user.getId(), user.getEmail(), user.getName());
+    }
+
+    private AuthResponse authResponse(User user) {
+        return new AuthResponse(jwtService.createToken(user.getEmail()), "Bearer",
+                jwtService.expirationSeconds(), toResponse(user));
     }
 }

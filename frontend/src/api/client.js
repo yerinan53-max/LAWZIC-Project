@@ -1,4 +1,9 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api";
+const BACKEND_URL = API_URL.replace(/\/api\/?$/, "");
+
+export function oauthLoginUrl(provider) {
+  return `${BACKEND_URL}/oauth2/authorization/${provider}`;
+}
 
 export function getToken() { return sessionStorage.getItem("accessToken"); }
 export function setToken(token) { sessionStorage.setItem("accessToken", token); }

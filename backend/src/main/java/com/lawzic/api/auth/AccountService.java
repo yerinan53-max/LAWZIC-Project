@@ -24,6 +24,8 @@ public class AccountService {
     private final AnalysisService analysisService;
     private final LegalConsultationHistoryRepository consultationHistory;
     private final PasswordResetTokenRepository passwordResetTokens;
+    private final SocialIdentityRepository socialIdentities;
+    private final OAuthLoginTicketRepository oauthLoginTickets;
 
     @Transactional
     public User updateAccount(String email, String name, String currentPassword, String newPassword) {
@@ -52,7 +54,7 @@ public class AccountService {
         }
         User user = users.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
         }
 
@@ -68,6 +70,10 @@ public class AccountService {
         consultationHistory.flush();
         passwordResetTokens.deleteAllByUserEmail(email);
         passwordResetTokens.flush();
+        oauthLoginTickets.deleteAllByUserEmail(email);
+        oauthLoginTickets.flush();
+        socialIdentities.deleteAllByUserEmail(email);
+        socialIdentities.flush();
         users.delete(user);
         users.flush();
     }

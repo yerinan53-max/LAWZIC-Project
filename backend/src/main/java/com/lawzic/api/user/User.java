@@ -16,7 +16,7 @@ public class User {
     private Long id;
     @Column(nullable = false, unique = true, length = 150)
     private String email;
-    @Column(nullable = false)
+    @Column
     private String passwordHash;
     @Column(nullable = false, length = 50)
     private String name;
@@ -45,5 +45,9 @@ public class User {
         this.privacyAgreedAt = now;
         this.termsVersion = termsVersion;
         this.privacyVersion = privacyVersion;
+    }
+
+    public static User social(String email, String name) {
+        return new User(email, null, name);
     }
 }

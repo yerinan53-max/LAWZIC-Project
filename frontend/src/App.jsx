@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import LegalConsultationPage from "./pages/LegalConsultationPage";
 import LoginPage from "./pages/LoginPage";
 import MyPage from "./pages/MyPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SignupPage from "./pages/SignupPage";
 
@@ -103,6 +104,18 @@ export default function App() {
       onHome={showHome}
       onLogin={() => navigate("/login")}
     />}/>
+    <Route path="/oauth/callback" element={user
+      ? <Navigate to="/contracts" replace/>
+      : <OAuthCallbackPage
+          ticket={new URLSearchParams(location.search).get("ticket")}
+          providerError={new URLSearchParams(location.search).get("error")}
+          onHome={showHome}
+          onLogin={loggedInUser => {
+            setUser(loggedInUser);
+            navigate("/contracts", { replace: true });
+          }}
+        />
+    }/>
     <Route path="/contracts" element={<ProtectedRoute user={user}>
       <ContractWorkspacePage
         user={user}

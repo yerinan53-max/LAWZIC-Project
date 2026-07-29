@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, setToken } from "../api/client";
+import { api, oauthLoginUrl, setToken } from "../api/client";
 
 export default function LoginPage({ onLogin, onHome, onSignup, onRecovery }) {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -27,6 +27,11 @@ export default function LoginPage({ onLogin, onHome, onSignup, onRecovery }) {
       {error && <p className="error">{error}</p>}
       <button>로그인</button>
     </form>
+    <div className="social-login-divider"><span>또는</span></div>
+    <div className="social-login-buttons">
+      <a className="social-login google" href={oauthLoginUrl("google")}><b>G</b> Google로 계속하기</a>
+      <a className="social-login naver" href={oauthLoginUrl("naver")}><b>N</b> 네이버로 계속하기</a>
+    </div>
     <div className="auth-links">
       <button className="link" onClick={() => onRecovery("id")}>아이디 찾기</button>
       <span>·</span>

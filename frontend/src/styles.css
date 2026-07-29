@@ -189,6 +189,17 @@ footer p { margin: 0; color: var(--primary); font-weight: 900; letter-spacing: .
 .recovery-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: 1.5rem; padding: .3rem; background: #eef2f4; border-radius: 9px; }
 .recovery-tabs button { color: var(--muted); background: transparent; border-color: transparent; }
 .recovery-tabs button.active { color: #fff; background: var(--primary); border-color: var(--primary); }
+.social-login-divider { display: flex; align-items: center; gap: .75rem; margin: 1.15rem 0; color: var(--muted); font-size: .8rem; }
+.social-login-divider::before, .social-login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.social-login-buttons { display: grid; gap: .55rem; }
+.social-login { display: flex; justify-content: center; align-items: center; gap: .65rem; padding: .72rem 1rem; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; }
+.social-login b { font-size: 1.05rem; }
+.social-login.google { color: #202124; background: #fff; }
+.social-login.google:hover { background: #f4f5f6; }
+.social-login.naver { color: #fff; background: #03c75a; border-color: #03c75a; }
+.social-login.naver:hover { background: #02ad4e; border-color: #02ad4e; }
+.consent-box.compact .consent-all + .consent-all { border-top: 1px solid var(--border); border-bottom: 0; }
+.oauth-consent-note { font-size: .8rem; }
 .secondary, .link { background: transparent; color: var(--primary); border: 1px solid var(--border); }
 .secondary:hover, .link:hover { color: #fff; background: var(--primary); border-color: var(--primary); }
 .link { width: 100%; margin-top: .5rem; border: 0; }

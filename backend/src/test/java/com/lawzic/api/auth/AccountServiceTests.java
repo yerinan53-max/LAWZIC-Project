@@ -28,6 +28,8 @@ class AccountServiceTests {
     @Mock AnalysisService analysisService;
     @Mock LegalConsultationHistoryRepository consultationHistory;
     @Mock PasswordResetTokenRepository passwordResetTokens;
+    @Mock SocialIdentityRepository socialIdentities;
+    @Mock OAuthLoginTicketRepository oauthLoginTickets;
 
     @Test
     void rejectsWrongPasswordWithoutDeletingData() {
@@ -35,7 +37,8 @@ class AccountServiceTests {
         when(users.findByEmail("owner@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong-password", "encoded")).thenReturn(false);
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory, passwordResetTokens
+                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
         assertThrows(
@@ -60,12 +63,14 @@ class AccountServiceTests {
         when(passwordEncoder.matches("correct-password", "encoded")).thenReturn(true);
         when(contractService.list("owner@example.com")).thenReturn(List.of(processing, completed));
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory, passwordResetTokens
+                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
         service.deleteAccount("owner@example.com", "correct-password");
 
-        var order = inOrder(analysisService, contractService, consultationHistory, passwordResetTokens, users);
+        var order = inOrder(analysisService, contractService, consultationHistory, passwordResetTokens,
+                oauthLoginTickets, socialIdentities, users);
         order.verify(analysisService).cancel(1L, "owner@example.com");
         order.verify(contractService).delete(1L, "owner@example.com");
         order.verify(contractService).delete(2L, "owner@example.com");
@@ -74,6 +79,10 @@ class AccountServiceTests {
         order.verify(consultationHistory).flush();
         order.verify(passwordResetTokens).deleteAllByUserEmail("owner@example.com");
         order.verify(passwordResetTokens).flush();
+        order.verify(oauthLoginTickets).deleteAllByUserEmail("owner@example.com");
+        order.verify(oauthLoginTickets).flush();
+        order.verify(socialIdentities).deleteAllByUserEmail("owner@example.com");
+        order.verify(socialIdentities).flush();
         order.verify(users).delete(user);
         order.verify(users).flush();
     }
@@ -85,7 +94,8 @@ class AccountServiceTests {
         when(passwordEncoder.matches("current-password", "encoded-old")).thenReturn(true);
         when(passwordEncoder.encode("new-password")).thenReturn("encoded-new");
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory, passwordResetTokens
+                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
         User updated = service.updateAccount(
