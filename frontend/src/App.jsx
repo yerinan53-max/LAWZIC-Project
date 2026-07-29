@@ -5,6 +5,7 @@ import ContractWorkspacePage from "./pages/ContractWorkspacePage";
 import HomePage from "./pages/HomePage";
 import LegalConsultationPage from "./pages/LegalConsultationPage";
 import LoginPage from "./pages/LoginPage";
+import MyPage from "./pages/MyPage";
 import SignupPage from "./pages/SignupPage";
 
 function ProtectedRoute({ user, children }) {
@@ -69,6 +70,7 @@ export default function App() {
       onHome={showHome}
       onStart={() => navigate(user ? "/contracts" : "/login", { state: { from: "/contracts" } })}
       onConsultation={() => navigate(user ? "/legal-consultation" : "/login", { state: { from: "/legal-consultation" } })}
+      onMyPage={() => navigate(user ? "/mypage" : "/login", { state: { from: "/mypage" } })}
     />}/>
     <Route path="/login" element={user
       ? <Navigate to={location.state?.from || "/contracts"} replace/>
@@ -91,7 +93,7 @@ export default function App() {
         onHome={showHome}
         onLogout={logout}
         onConsultation={() => navigate("/legal-consultation")}
-        onDeleteAccount={deleteAccount}
+        onMyPage={() => navigate("/mypage")}
       />
     </ProtectedRoute>}/>
     <Route path="/contracts/:contractId/analysis" element={<ProtectedRoute user={user}>
@@ -100,7 +102,7 @@ export default function App() {
         onHome={showHome}
         onLogout={logout}
         onConsultation={() => navigate("/legal-consultation")}
-        onDeleteAccount={deleteAccount}
+        onMyPage={() => navigate("/mypage")}
       />
     </ProtectedRoute>}/>
     <Route path="/legal-consultation" element={<ProtectedRoute user={user}>
@@ -109,7 +111,19 @@ export default function App() {
         onHome={showHome}
         onWorkspace={() => navigate("/contracts")}
         onLogout={logout}
+        onMyPage={() => navigate("/mypage")}
+      />
+    </ProtectedRoute>}/>
+    <Route path="/mypage" element={<ProtectedRoute user={user}>
+      <MyPage
+        user={user}
+        onHome={showHome}
+        onWorkspace={() => navigate("/contracts")}
+        onConsultation={() => navigate("/legal-consultation")}
+        onOpenAnalysis={id => navigate(`/contracts/${id}/analysis`)}
+        onUserUpdated={setUser}
         onDeleteAccount={deleteAccount}
+        onLogout={logout}
       />
     </ProtectedRoute>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>

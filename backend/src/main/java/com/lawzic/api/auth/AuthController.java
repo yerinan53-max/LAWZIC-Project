@@ -46,6 +46,22 @@ public class AuthController {
         return toResponse(users.findByEmail(principal.getName()).orElseThrow());
     }
 
+    public record UpdateAccountRequest(String name, String currentPassword, String newPassword) {}
+
+    @PatchMapping("/me")
+    public UserResponse updateAccount(
+            @RequestBody UpdateAccountRequest request,
+            Principal principal
+    ) {
+        if (request == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정할 정보를 입력하세요.");
+        return toResponse(accountService.updateAccount(
+                principal.getName(),
+                request.name(),
+                request.currentPassword(),
+                request.newPassword()
+        ));
+    }
+
     public record DeleteAccountRequest(String password) {}
 
     @DeleteMapping("/me")

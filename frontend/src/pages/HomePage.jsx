@@ -1,8 +1,9 @@
-export default function HomePage({ onStart, onConsultation, onHome, user }) {
+export default function HomePage({ onStart, onConsultation, onMyPage, onHome, user }) {
   return <div className="landing">
     <nav className="landing-nav">
       <button className="brand-home landing-brand" onClick={onHome} aria-label="LAWZIC 메인화면 새로고침"><span className="brand-logo">LAW<span>Z</span>IC</span></button>
       <div className="landing-nav-actions">
+        {user && <button className="nav-login" onClick={onMyPage}>마이페이지</button>}
         <button className="nav-consultation" onClick={onConsultation}>법률 AI 상담</button>
         <button className="nav-login" onClick={onStart}>{user ? "계약서 분석실" : "로그인"}</button>
       </div>
