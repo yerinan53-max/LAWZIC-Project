@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -28,12 +29,28 @@ public class AiClient {
                 .contentType(MediaType.MULTIPART_FORM_DATA).body(body).retrieve().body(JsonNode.class);
     }
 
-    public JsonNode question(String question, String filePath) {
+    public JsonNode question(Long contractId, String question, String historyJson, String filePath) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("contract_id", contractId.toString());
         body.add("question", question);
-        body.add("file", new FileSystemResource(Path.of(filePath)));
+        body.add("history", historyJson);
+        try {
+            return sendQuestion(body);
+        } catch (HttpClientErrorException.Conflict missingIndex) {
+            body.add("file", new FileSystemResource(Path.of(filePath)));
+            return sendQuestion(body);
+        }
+    }
+
+    private JsonNode sendQuestion(MultiValueMap<String, Object> body) {
         return builder.baseUrl(aiBaseUrl).build().post().uri("/internal/v1/question")
                 .contentType(MediaType.MULTIPART_FORM_DATA).body(body).retrieve().body(JsonNode.class);
+    }
+
+    public void deleteContractIndex(Long contractId) {
+        builder.baseUrl(aiBaseUrl).build().delete()
+                .uri("/internal/v1/contracts/{contractId}/index", contractId)
+                .retrieve().toBodilessEntity();
     }
 
     public JsonNode legalChat(String question, List<Map<String, String>> history) {

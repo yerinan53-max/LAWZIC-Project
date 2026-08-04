@@ -33,7 +33,7 @@ export default function SignupPage({ onHome, onLogin }) {
 
   return <main className="auth-shell"><section className="card auth-card signup-card">
     <button className="brand-home auth-brand" onClick={onHome} aria-label="LAWZIC 메인화면으로 이동"><span className="brand-logo">LAW<span>Z</span>IC</span></button>
-    <h1>회원가입</h1>
+    <h1 className="auth-title">회원가입</h1>
     <p className="muted">계정을 만들고 계약서 분석을 시작하세요.</p>
     <form onSubmit={submit}>
       <label>이름<input value={form.name} maxLength="50" onChange={event => setForm({ ...form, name: event.target.value })} autoComplete="name" required /></label>

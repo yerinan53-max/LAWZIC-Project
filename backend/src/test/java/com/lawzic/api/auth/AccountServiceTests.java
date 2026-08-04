@@ -2,6 +2,7 @@ package com.lawzic.api.auth;
 
 import com.lawzic.api.analysis.AnalysisService;
 import com.lawzic.api.analysis.LegalConsultationHistoryRepository;
+import com.lawzic.api.analysis.ContractQuestionHistoryRepository;
 import com.lawzic.api.contract.Contract;
 import com.lawzic.api.contract.ContractService;
 import com.lawzic.api.user.User;
@@ -27,6 +28,7 @@ class AccountServiceTests {
     @Mock ContractService contractService;
     @Mock AnalysisService analysisService;
     @Mock LegalConsultationHistoryRepository consultationHistory;
+    @Mock ContractQuestionHistoryRepository contractQuestionHistory;
     @Mock PasswordResetTokenRepository passwordResetTokens;
     @Mock SocialIdentityRepository socialIdentities;
     @Mock OAuthLoginTicketRepository oauthLoginTickets;
@@ -37,7 +39,7 @@ class AccountServiceTests {
         when(users.findByEmail("owner@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong-password", "encoded")).thenReturn(false);
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                users, passwordEncoder, contractService, analysisService, consultationHistory, contractQuestionHistory,
                 passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
@@ -63,7 +65,7 @@ class AccountServiceTests {
         when(passwordEncoder.matches("correct-password", "encoded")).thenReturn(true);
         when(contractService.list("owner@example.com")).thenReturn(List.of(processing, completed));
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                users, passwordEncoder, contractService, analysisService, consultationHistory, contractQuestionHistory,
                 passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
@@ -94,7 +96,7 @@ class AccountServiceTests {
         when(passwordEncoder.matches("current-password", "encoded-old")).thenReturn(true);
         when(passwordEncoder.encode("new-password")).thenReturn("encoded-new");
         AccountService service = new AccountService(
-                users, passwordEncoder, contractService, analysisService, consultationHistory,
+                users, passwordEncoder, contractService, analysisService, consultationHistory, contractQuestionHistory,
                 passwordResetTokens, socialIdentities, oauthLoginTickets
         );
 
@@ -104,5 +106,21 @@ class AccountServiceTests {
 
         assertTrue(updated.getName().equals("새 이름"));
         assertTrue(updated.getPasswordHash().equals("encoded-new"));
+    }
+
+    @Test
+    void updatesNameWithoutRequestingCurrentPassword() {
+        User user = new User("owner@example.com", "encoded-old", "기존 이름");
+        when(users.findByEmail("owner@example.com")).thenReturn(Optional.of(user));
+        AccountService service = new AccountService(
+                users, passwordEncoder, contractService, analysisService, consultationHistory, contractQuestionHistory,
+                passwordResetTokens, socialIdentities, oauthLoginTickets
+        );
+
+        User updated = service.updateAccount("owner@example.com", "새 이름", null, null);
+
+        assertTrue(updated.getName().equals("새 이름"));
+        assertTrue(updated.getPasswordHash().equals("encoded-old"));
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
 }

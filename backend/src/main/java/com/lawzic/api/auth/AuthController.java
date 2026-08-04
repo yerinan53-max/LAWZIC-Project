@@ -61,7 +61,8 @@ public class AuthController {
     public record FindLoginIdRequest(@NotBlank @Size(max = 50) String name,
                                      @Email @NotBlank String email) {}
     public record PasswordResetRequest(@Email @NotBlank String email) {}
-    public record PasswordResetConfirmRequest(@NotBlank String token,
+    public record PasswordResetConfirmRequest(@Email @NotBlank String email,
+                                              @NotBlank @jakarta.validation.constraints.Pattern(regexp = "\\d{6}") String code,
                                               @Size(min = 8, max = 72) String newPassword) {}
     public record OAuthTicketRequest(@NotBlank String ticket) {}
     public record OAuthLinkRequest(@NotBlank String ticket, @Email @NotBlank String email,
@@ -74,18 +75,18 @@ public class AuthController {
     @PostMapping("/find-login-id")
     public RecoveryMessage findLoginId(@Valid @RequestBody FindLoginIdRequest request) {
         recoveryService.sendLoginId(request.name(), request.email());
-        return new RecoveryMessage("입력한 정보와 일치하는 계정이 있으면 가입 이메일로 안내를 보냈습니다.");
+        return new RecoveryMessage("입력한 정보와 일치하는 계정으로 가입 이메일로 안내를 보냈습니다.");
     }
 
     @PostMapping("/password-reset/request")
     public RecoveryMessage requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
         recoveryService.requestPasswordReset(request.email());
-        return new RecoveryMessage("가입된 이메일이면 비밀번호 재설정 링크를 보냈습니다.");
+        return new RecoveryMessage("가입된 이메일로 6자리 인증번호를 보냈습니다.");
     }
 
     @PostMapping("/password-reset/confirm")
     public RecoveryMessage confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
-        recoveryService.resetPassword(request.token(), request.newPassword());
+        recoveryService.resetPassword(request.email(), request.code(), request.newPassword());
         return new RecoveryMessage("비밀번호가 변경되었습니다. 새 비밀번호로 로그인하세요.");
     }
 

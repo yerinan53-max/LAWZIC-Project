@@ -7,7 +7,7 @@
 | React | 입력, 업로드, 분석 결과 표현 |
 | Spring Boot | 인증, 권한, 계약서 메타데이터, AI 서버 연동, 결과 저장 |
 | FastAPI | PDF 처리, 의미 기반 위험 분석, RAG·LLM·LangGraph |
-| MariaDB | 사용자, 계약서, 분석 결과와 상담 이력 |
+| MariaDB | 사용자, 계약서, 분석 결과, 계약서 질문 이력과 상담 이력 |
 
 ## 데이터 관계
 

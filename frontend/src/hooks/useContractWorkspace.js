@@ -10,10 +10,16 @@ export default function useContractWorkspace() {
   const [activeLocation, setActiveLocation] = useState(null);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState(null);
+  const [questionHistory, setQuestionHistory] = useState([]);
   const [analyzingId, setAnalyzingId] = useState(null);
   const [pendingFile, setPendingFile] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const analysisRun = useRef(0);
+
+  const loadQuestionHistory = async contractId => {
+    const items = await api(`/contracts/${contractId}/analysis/questions`);
+    setQuestionHistory(items);
+  };
 
   const load = () => api("/contracts")
     .then(setContracts)
@@ -93,6 +99,7 @@ export default function useContractWorkspace() {
         const status = await api(`/contracts/${contract.id}/analysis/status`);
         if (status.status === "COMPLETED") {
           setResult(await api(`/contracts/${contract.id}/analysis`));
+          await loadQuestionHistory(contract.id);
           await load();
           return true;
         }
@@ -131,10 +138,16 @@ export default function useContractWorkspace() {
   const viewResult = async (contract) => {
     setSelected(contract);
     setResult(null);
+    setAnswer(null);
+    setQuestionHistory([]);
     setBusy(true);
     setError("");
     try {
-      setResult(await api(`/contracts/${contract.id}/analysis`));
+      const [analysisResult] = await Promise.all([
+        api(`/contracts/${contract.id}/analysis`),
+        loadQuestionHistory(contract.id),
+      ]);
+      setResult(analysisResult);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -149,9 +162,18 @@ export default function useContractWorkspace() {
     setError("");
     setAnswer(null);
     try {
-      setAnswer(await api(`/contracts/${selected.id}/analysis/questions`, {
+      const submittedQuestion = question.trim();
+      const response = await api(`/contracts/${selected.id}/analysis/questions`, {
         method: "POST", body: JSON.stringify({question}),
-      }));
+      });
+      setAnswer(response);
+      setQuestion("");
+      setQuestionHistory(value => [...value, {
+        id: `new-${Date.now()}`,
+        question: submittedQuestion,
+        response,
+        createdAt: new Date().toISOString(),
+      }]);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -186,6 +208,8 @@ export default function useContractWorkspace() {
       if (selected?.id === contract.id) {
         setSelected(null);
         setResult(null);
+        setAnswer(null);
+        setQuestionHistory([]);
       }
       await load();
       return true;
@@ -198,7 +222,7 @@ export default function useContractWorkspace() {
   };
 
   return {
-    contracts, selected, result, busy, error, activeLocation, question, answer,
+    contracts, selected, result, busy, error, activeLocation, question, answer, questionHistory,
     analyzingId, pendingFile, loaded, setActiveLocation, setQuestion,
     selectFiles, clearPendingFile, analyzePending, analyze, cancelAnalysis,
     viewResult, ask, downloadReport, deleteContract,

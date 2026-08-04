@@ -34,6 +34,20 @@
     "required_evidence_ids": ["labor-standards-act-43"]
   },
   {
+    "id": "property_damage_wage_deduction_colloquial",
+    "question": "회사 물건을 망가뜨리면 월급에서 빼도 되나요?",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-43"]
+  },
+  {
+    "id": "equipment_damage_salary_offset_paraphrase",
+    "question": "업무용 장비가 파손됐는데 수리비를 봉급에서 떼겠다고 합니다.",
+    "history": [],
+    "in_scope": true,
+    "required_evidence_ids": ["labor-standards-act-43"]
+  },
+  {
     "id": "performance_based_base_wage_reduction",
     "question": "성과가 부족하다는 이유로 이미 정해진 기본급을 깎을 수 있나요?",
     "history": [],

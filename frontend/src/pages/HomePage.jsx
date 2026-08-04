@@ -3,16 +3,20 @@ export default function HomePage({ onStart, onConsultation, onMyPage, onHome, us
     <nav className="landing-nav">
       <button className="brand-home landing-brand" onClick={onHome} aria-label="LAWZIC 메인화면 새로고침"><span className="brand-logo">LAW<span>Z</span>IC</span></button>
       <div className="landing-nav-actions">
-        {user && <button className="nav-login" onClick={onMyPage}>마이페이지</button>}
-        <button className="nav-consultation" onClick={onConsultation}>법률 AI 상담</button>
-        <button className="nav-login" onClick={onStart}>{user ? "계약서 분석실" : "로그인"}</button>
+        {user && <button className="landing-user-name" onClick={onMyPage} title="마이페이지로 이동" aria-label={`${user.name}님의 마이페이지로 이동`}>
+          <span className="landing-user-initial" aria-hidden="true">{user.name?.trim().charAt(0) || "U"}</span>
+          <span className="landing-user-label">{user.name}님</span>
+        </button>}
+        {user && <button className="landing-nav-link" onClick={onMyPage}>마이페이지</button>}
+        <button className="landing-nav-link" onClick={onConsultation}>법률 AI 상담</button>
+        <button className="landing-nav-link" onClick={onStart}>{user ? "계약서 분석실" : "로그인"}</button>
       </div>
     </nav>
     <main>
       <section className="hero">
         <div className="hero-copy">
           <p className="hero-kicker">AI CONTRACT RISK ANALYSIS</p>
-          <h1><span className="hero-title-line">계약서의 위험을</span><span className="hero-title-line accent">근거와 함께 확인하세요.</span></h1>
+          <h1><span className="hero-title-line">계약서의 위험을</span><span className="hero-title-line accent">근거와 함께</span><span className="hero-title-line">확인하세요.</span></h1>
           <p>LAWZIC은 계약서의 잠재적인 위험 조항을 탐지하고 관련 법령과 검토 방향을 한눈에 정리하는 AI 계약서 분석 플랫폼입니다.</p>
           <div className="hero-actions"><button onClick={onStart}>계약서 분석 시작</button><button className="secondary" onClick={onConsultation}>노동법 AI 상담</button><a href="#features">주요 기능 보기</a></div>
           <small>LAWZIC은 텍스트가 포함된 근로계약서 PDF 분석을 지원합니다.</small>

@@ -8,7 +8,10 @@ const SUGGESTIONS = [
   "회사가 임금을 임의로 공제할 수 있나요?",
 ];
 const MAX_QUESTION_LENGTH = 4000;
-const CONSULTATION_TIMEOUT_MS = 75000;
+const configuredTimeout = Number(import.meta.env.VITE_CONSULTATION_TIMEOUT_MS);
+const CONSULTATION_TIMEOUT_MS = Number.isFinite(configuredTimeout) && configuredTimeout >= 30000
+  ? configuredTimeout
+  : 150000;
 
 function storedMessages(key) {
   try {
@@ -80,10 +83,13 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
         <h2>노동법 AI 상담</h2>
       </div>
       <div className="user">
-        <button className="secondary" onClick={onWorkspace}>계약서 분석실</button>
-        <button className="secondary" onClick={reset}>새 대화</button>
-        <button className="secondary" onClick={onMyPage}>마이페이지</button>
-        <button className="secondary" onClick={onLogout}>로그아웃</button>
+        <button className="landing-user-name" onClick={onMyPage} title="마이페이지로 이동" aria-label={`${user.name}님의 마이페이지로 이동`}>
+          <span className="landing-user-initial" aria-hidden="true">{user.name?.trim().charAt(0) || "U"}</span>
+          <span className="landing-user-label">{user.name}님</span>
+        </button>
+        <button className="landing-nav-link" onClick={onWorkspace}>계약서 분석실</button>
+        <button className="landing-nav-link" onClick={onMyPage}>마이페이지</button>
+        <button className="landing-nav-link" onClick={onLogout}>로그아웃</button>
       </div>
     </header>
 
@@ -99,6 +105,7 @@ export default function LegalConsultationPage({ user, onHome, onWorkspace, onLog
         <div className="suggestion-list">
           {SUGGESTIONS.map(item => <button key={item} className="suggestion" onClick={() => setQuestion(item)}>{item}</button>)}
         </div>
+        <button className="secondary consultation-new-chat" onClick={reset}>새 대화 시작</button>
       </aside>
 
       <section className="chat-panel card" aria-label="노동법 AI 상담 대화">

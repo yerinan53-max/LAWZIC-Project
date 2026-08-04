@@ -8,7 +8,6 @@ import LegalConsultationPage from "./pages/LegalConsultationPage";
 import LoginPage from "./pages/LoginPage";
 import MyPage from "./pages/MyPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SignupPage from "./pages/SignupPage";
 
 function ProtectedRoute({ user, children }) {
@@ -99,11 +98,6 @@ export default function App() {
           onLogin={() => navigate("/login")}
         />
     }/>
-    <Route path="/reset-password" element={<ResetPasswordPage
-      token={new URLSearchParams(location.search).get("token")}
-      onHome={showHome}
-      onLogin={() => navigate("/login")}
-    />}/>
     <Route path="/oauth/callback" element={user
       ? <Navigate to="/contracts" replace/>
       : <OAuthCallbackPage

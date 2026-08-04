@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
     Optional<PasswordResetToken> findByTokenHash(String tokenHash);
+    Optional<PasswordResetToken> findTopByUserEmailOrderByCreatedAtDesc(String email);
     void deleteAllByUserEmail(String email);
 }

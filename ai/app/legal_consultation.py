@@ -2,9 +2,12 @@ import os
 import re
 import logging
 import threading
+from typing import Literal, TypedDict
 
 from langchain_ollama import ChatOllama
+from langgraph.graph import END, START, StateGraph
 
+from .legal_issue_classifier import ClassifiedIssue, LegalIssueClassifier
 from .schemas import LegalChatMessage, LegalChatResponse, LegalReference
 
 
@@ -39,7 +42,8 @@ CONSULTATION_TOPICS = (
     (("야간근로", "야간 근로", "휴일근로", "휴일 근로", "가산수당", "연장수당"),
      {"labor-standards-act-56"}),
     (("임금 공제", "급여 공제", "월급 공제", "임의 공제", "임금체불", "임금 체불",
-      "급여체불", "월급을 못", "임금을 못", "지급일"),
+      "급여체불", "월급을 못", "임금을 못", "월급에서 빼", "급여에서 빼",
+      "임금에서 빼", "지급일"),
      {"labor-standards-act-43"}),
     (("기본급", "급여 삭감", "임금 삭감", "월급 삭감", "임금 감액", "급여 감액",
       "월급 감액", "감급", "임금을 깎", "급여를 깎", "월급을 깎", "기본급을 깎"),
@@ -94,6 +98,11 @@ FOLLOW_UP_TERMS = (
     "수당은", "기간은", "금액은", "한도는", "어떻게 지급",
 )
 
+WAGE_OBJECT_TERMS = ("임금", "급여", "월급", "기본급")
+WAGE_DEDUCTION_ACTION_TERMS = (
+    "공제", "차감", "빼", "떼", "제하", "상계", "체불", "못 받", "지급일",
+)
+
 
 def contextualize_legal_question(question: str, history: list[LegalChatMessage]) -> str:
     current = question.strip()
@@ -146,8 +155,8 @@ def supported_evidence_ids(query: str) -> set[str]:
         term in compact for term in ("최저임금", "최저 임금", "적게", "감액", "90%")
     ):
         return {"minimum-wage-act-5", "minimum-wage-enforcement-decree-3"}
-    if any(term in compact for term in ("임금", "급여", "월급")) and any(
-        term in compact for term in ("공제", "차감", "체불", "못 받", "지급일")
+    if any(term in compact for term in WAGE_OBJECT_TERMS) and any(
+        term in compact for term in WAGE_DEDUCTION_ACTION_TERMS
     ):
         return {"labor-standards-act-43"}
     wage_reduction_objects = ("임금", "급여", "월급", "기본급", "성과급", "상여금")
@@ -174,7 +183,11 @@ def supported_evidence_ids(query: str) -> set[str]:
     return supported
 
 
-def filter_consultation_matches(query: str, matches: list[dict]) -> list[dict]:
+def filter_consultation_matches(
+    query: str,
+    matches: list[dict],
+    issue_citations: set[tuple[str, str]] | None = None,
+) -> list[dict]:
     min_hybrid = float(os.getenv("LEGAL_CHAT_MIN_HYBRID_SCORE", "0.62"))
     min_similarity = float(os.getenv("LEGAL_CHAT_MIN_SIMILARITY", "0.60"))
     query_terms = _query_terms(query)
@@ -189,9 +202,9 @@ def filter_consultation_matches(query: str, matches: list[dict]) -> list[dict]:
             LEGACY_EVIDENCE_CITATIONS[evidence_id]
             for evidence_id in allowed_ids
             if evidence_id in LEGACY_EVIDENCE_CITATIONS
-        }
+        } | (issue_citations or set())
         item_citation = (item.get("law_name"), item.get("article_number"))
-        if allowed_ids and (
+        if (allowed_ids or issue_citations) and (
             item.get("evidence_id") not in allowed_ids
             and item_citation not in allowed_citations
         ):
@@ -226,22 +239,45 @@ def filter_consultation_matches(query: str, matches: list[dict]) -> list[dict]:
 
 
 def search_consultation_laws(
-    question: str, history: list[LegalChatMessage], rag,
+    question: str,
+    history: list[LegalChatMessage],
+    rag,
+    classified_issues: list[ClassifiedIssue] | None = None,
 ) -> tuple[str, list[dict]]:
     query = contextualize_legal_question(question, history)
+    issues = classified_issues or []
+    expanded_queries = list(dict.fromkeys([
+        query,
+        *(expanded for selected in issues for expanded in selected.issue.queries),
+    ]))
+    issue_citations = {
+        citation for selected in issues for citation in selected.issue.sources
+    }
     try:
-        matches = rag.search(query, top_k=8)
+        found = {}
+        for expanded_query in expanded_queries:
+            for match in rag.search(expanded_query, top_k=8):
+                key = match.get("evidence_id") or (
+                    match.get("law_name"), match.get("article_number"), match.get("content")
+                )
+                previous = found.get(key)
+                if previous is None or float(match.get("hybrid_score", 0)) > float(previous.get("hybrid_score", 0)):
+                    found[key] = match
+        matches = list(found.values())
         allowed_ids = supported_evidence_ids(query)
         required_citations = {
             LEGACY_EVIDENCE_CITATIONS[evidence_id]
             for evidence_id in allowed_ids
             if evidence_id in LEGACY_EVIDENCE_CITATIONS
-        }
+        } | issue_citations
         if required_citations and hasattr(rag, "get_by_citations"):
-            matches = rag.get_by_citations(required_citations, query) + matches
+            matches = rag.get_by_citations(
+                required_citations, " ".join(expanded_queries),
+            ) + matches
     except Exception:
         return query, []
-    return query, filter_consultation_matches(query, matches)
+    filtered = filter_consultation_matches(query, matches, issue_citations)
+    return query, filtered[:8]
 
 
 def _reference(item: dict) -> LegalReference:
@@ -297,8 +333,8 @@ def _fallback_answer(matches: list[dict], query: str = "") -> str:
         for index, item in enumerate(matches, start=1)
     }
     wage_payment_rule = citation_indices.get(("근로기준법", "제43조"))
-    wage_object = any(term in query for term in ("임금", "급여", "월급", "기본급"))
-    wage_deduction_action = any(term in query for term in ("공제", "차감", "빼"))
+    wage_object = any(term in query for term in WAGE_OBJECT_TERMS)
+    wage_deduction_action = any(term in query for term in WAGE_DEDUCTION_ACTION_TERMS)
     if wage_payment_rule and wage_object and wage_deduction_action:
         return (
             "원칙적으로 회사는 법령이나 단체협약상 근거 없이 근로자의 임금을 "
@@ -387,35 +423,13 @@ def _fallback_answer(matches: list[dict], query: str = "") -> str:
     return "\n".join(lines)
 
 
-def answer_legal_question(
-    question: str, history: list[LegalChatMessage], rag,
+def _build_grounded_response(
+    question: str,
+    history: list[LegalChatMessage],
+    search_query: str,
+    matches: list[dict],
 ) -> LegalChatResponse:
     warning = "검색된 노동관계 법령에 근거한 참고 답변이며 법률 자문이나 법적 판단을 대체하지 않습니다."
-    # 키워드 화이트리스트만으로 먼저 차단하지 않는다. 질문을 법령 RAG에 검색한 뒤,
-    # 충분히 관련된 노동법 조문이 확인되면 새로운 표현도 상담 범위로 인정한다.
-    search_query, matches = search_consultation_laws(question, history, rag)
-    if not is_consultation_in_scope(question, history, matches):
-        return LegalChatResponse(
-            answer=(
-                "현재 상담은 임금, 근로시간, 휴일·휴가, 해고, 퇴직금 등 "
-                "대한민국 노동법 질문만 지원합니다."
-            ),
-            legal_references=[],
-            warning=warning,
-            insufficient_evidence=True,
-        )
-
-    if not matches:
-        return LegalChatResponse(
-            answer=(
-                "질문과 충분히 관련된 노동관계 법령 근거를 찾지 못했습니다. "
-                "사실관계와 쟁점을 조금 더 구체적으로 입력하거나 전문가에게 확인해 주세요."
-            ),
-            legal_references=[],
-            warning=warning,
-            insufficient_evidence=True,
-        )
-
     law_context = "\n".join(
         f"[근거 {index}] {item['law_name']} {item['article_number']}: {item['content']}"
         for index, item in enumerate(matches, start=1)
@@ -460,9 +474,10 @@ def answer_legal_question(
                 model=os.getenv("OLLAMA_MODEL", "gemma2:2b"),
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
                 temperature=0,
-                num_predict=400,
+                num_predict=int(os.getenv("OLLAMA_CHAT_NUM_PREDICT", "280")),
+                keep_alive=os.getenv("OLLAMA_KEEP_ALIVE", "15m"),
                 client_kwargs={
-                    "timeout": float(os.getenv("OLLAMA_CHAT_TIMEOUT_SECONDS", "45")),
+                    "timeout": float(os.getenv("OLLAMA_CHAT_TIMEOUT_SECONDS", "120")),
                 },
             ).invoke(prompt).content.strip()
             if _is_grounded_generated_answer(generated, matches):
@@ -490,3 +505,131 @@ def answer_legal_question(
         warning=warning,
         insufficient_evidence=False,
     )
+
+
+class LegalConsultationState(TypedDict, total=False):
+    question: str
+    history: list[LegalChatMessage]
+    search_query: str
+    classified_issues: list[ClassifiedIssue]
+    matches: list[dict]
+    response: LegalChatResponse
+
+
+class LegalConsultationAgent:
+    """노동법 상담의 분류·검색·검증·응답을 실행하는 LangGraph 워크플로."""
+
+    WARNING = "검색된 노동관계 법령에 근거한 참고 답변이며 법률 자문이나 법적 판단을 대체하지 않습니다."
+
+    def __init__(self, rag):
+        self.rag = rag
+        self.classifier = LegalIssueClassifier(rag)
+        builder = StateGraph(LegalConsultationState)
+        builder.add_node("prepare", self._prepare)
+        builder.add_node("classify_issues", self._classify_issues)
+        builder.add_node("retrieve_laws", self._retrieve_laws)
+        builder.add_node("out_of_scope", self._out_of_scope)
+        builder.add_node("insufficient_evidence", self._insufficient_evidence)
+        builder.add_node("generate_answer", self._generate_answer)
+        builder.add_node("verify_sources", self._verify_sources)
+        builder.add_edge(START, "prepare")
+        builder.add_edge("prepare", "classify_issues")
+        builder.add_edge("classify_issues", "retrieve_laws")
+        builder.add_conditional_edges(
+            "retrieve_laws", self._route_after_retrieval,
+            {
+                "out_of_scope": "out_of_scope",
+                "insufficient": "insufficient_evidence",
+                "answer": "generate_answer",
+            },
+        )
+        builder.add_edge("out_of_scope", END)
+        builder.add_edge("insufficient_evidence", END)
+        builder.add_edge("generate_answer", "verify_sources")
+        builder.add_edge("verify_sources", END)
+        self.graph = builder.compile()
+
+    @staticmethod
+    def _prepare(state: LegalConsultationState) -> dict:
+        return {
+            "search_query": contextualize_legal_question(
+                state["question"], state.get("history", []),
+            ),
+        }
+
+    def _classify_issues(self, state: LegalConsultationState) -> dict:
+        return {
+            "classified_issues": self.classifier.classify(state["search_query"]),
+        }
+
+    def _retrieve_laws(self, state: LegalConsultationState) -> dict:
+        search_query, matches = search_consultation_laws(
+            state["question"], state.get("history", []), self.rag,
+            state.get("classified_issues", []),
+        )
+        return {"search_query": search_query, "matches": matches}
+
+    @staticmethod
+    def _route_after_retrieval(
+        state: LegalConsultationState,
+    ) -> Literal["out_of_scope", "insufficient", "answer"]:
+        question = state["question"]
+        history = state.get("history", [])
+        matches = state.get("matches", [])
+        issues = state.get("classified_issues", [])
+        current_has_labor_term = any(term in question for term in LABOR_SCOPE_TERMS)
+        current_has_other_domain = any(term in question for term in OUT_OF_SCOPE_TERMS)
+        if current_has_other_domain and not current_has_labor_term:
+            return "out_of_scope"
+        if not (is_labor_law_question(question, history) or issues or matches):
+            return "out_of_scope"
+        return "answer" if matches else "insufficient"
+
+    @classmethod
+    def _out_of_scope(cls, _state: LegalConsultationState) -> dict:
+        return {"response": LegalChatResponse(
+            answer=(
+                "현재 상담은 임금, 근로시간, 휴일·휴가, 해고, 퇴직금 등 "
+                "대한민국 노동법 질문만 지원합니다."
+            ),
+            legal_references=[], warning=cls.WARNING, insufficient_evidence=True,
+        )}
+
+    @classmethod
+    def _insufficient_evidence(cls, _state: LegalConsultationState) -> dict:
+        return {"response": LegalChatResponse(
+            answer=(
+                "질문과 충분히 관련된 노동관계 법령 근거를 찾지 못했습니다. "
+                "사실관계와 쟁점을 조금 더 구체적으로 입력하거나 전문가에게 확인해 주세요."
+            ),
+            legal_references=[], warning=cls.WARNING, insufficient_evidence=True,
+        )}
+
+    @staticmethod
+    def _generate_answer(state: LegalConsultationState) -> dict:
+        return {"response": _build_grounded_response(
+            state["question"], state.get("history", []),
+            state["search_query"], state["matches"],
+        )}
+
+    @classmethod
+    def _verify_sources(cls, state: LegalConsultationState) -> dict:
+        response = state["response"]
+        # 생성 답변에서 실제 인용한 번호만 _build_grounded_response가 이미 선별한다.
+        # 이 노드는 잘못된 빈 출처 성공 응답이 외부로 나가지 않도록 최종 불변식을 보장한다.
+        if not response.legal_references:
+            return cls._insufficient_evidence(state)
+        return {"response": response}
+
+    def answer(
+        self, question: str, history: list[LegalChatMessage],
+    ) -> LegalChatResponse:
+        state = self.graph.invoke({"question": question, "history": history})
+        return state["response"]
+
+
+def answer_legal_question(
+    question: str, history: list[LegalChatMessage], rag,
+) -> LegalChatResponse:
+    """기존 호출부와 테스트를 위한 호환 함수."""
+    return LegalConsultationAgent(rag).answer(question, history)

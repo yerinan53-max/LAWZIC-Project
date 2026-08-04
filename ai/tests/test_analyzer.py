@@ -1,4 +1,4 @@
-from app.analyzer import analyze_contract
+from app.analyzer import REPLACEMENTS, RULES, analyze_contract
 
 
 def test_detects_severance_and_missing_sections():
@@ -10,6 +10,18 @@ def test_detects_severance_and_missing_sections():
     assert next(item for item in result.clauses if item.clause_type == "SEVERANCE_NONPAYMENT").replacement_text
     assert next(item for item in result.checklist if item.code == "WAGE").status == "COMPLIANT"
     assert next(item for item in result.checklist if item.code == "HOLIDAY").status == "MISSING"
+
+
+def test_replacements_are_contract_clauses_not_repeated_recommendations():
+    recommendations = {rule.clause_type: rule.recommendation for rule in RULES}
+
+    assert REPLACEMENTS.keys() == recommendations.keys()
+    assert all(
+        replacement != recommendations[clause_type]
+        for clause_type, replacement in REPLACEMENTS.items()
+    )
+    assert "근로자의 손해배상 책임은" in REPLACEMENTS["DAMAGE_SHIFTING"]
+    assert not REPLACEMENTS["DAMAGE_SHIFTING"].endswith("하세요.")
 
 
 def test_holiday_checklist_prefers_actual_holiday_clause_over_payday_reference():

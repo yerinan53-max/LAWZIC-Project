@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -46,9 +45,9 @@ public class AccountRecoveryService {
     public void requestPasswordReset(String email) {
         users.findByEmail(normalize(email)).ifPresent(user -> {
             tokens.deleteAllByUserEmail(user.getEmail());
-            String rawToken = newToken();
+            String rawToken = newCode();
             PasswordResetToken saved = tokens.save(new PasswordResetToken(
-                    user, sha256(rawToken), Instant.now().plus(30, ChronoUnit.MINUTES)));
+                    user, sha256(rawToken), Instant.now().plus(10, ChronoUnit.MINUTES)));
             try {
                 mail.sendPasswordReset(user.getEmail(), rawToken);
             } catch (RuntimeException exception) {
@@ -59,14 +58,21 @@ public class AccountRecoveryService {
     }
 
     @Transactional
-    public void resetPassword(String rawToken, String newPassword) {
+    public void resetPassword(String email, String rawToken, String newPassword) {
         if (newPassword == null || newPassword.length() < 8 || newPassword.length() > 72) {
             throw new ResponseStatusException(BAD_REQUEST, "새 비밀번호는 8자 이상 72자 이하로 입력하세요.");
         }
-        PasswordResetToken token = tokens.findByTokenHash(sha256(rawToken == null ? "" : rawToken))
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "유효하지 않은 재설정 링크입니다."));
+        String normalizedEmail = normalize(email);
+        PasswordResetToken token = tokens.findTopByUserEmailOrderByCreatedAtDesc(normalizedEmail)
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "인증번호가 올바르지 않거나 만료되었습니다."));
         if (!token.isUsable(Instant.now())) {
-            throw new ResponseStatusException(BAD_REQUEST, "재설정 링크가 만료되었거나 이미 사용되었습니다.");
+            throw new ResponseStatusException(BAD_REQUEST, "인증번호가 올바르지 않거나 만료되었습니다.");
+        }
+        if (!MessageDigest.isEqual(
+                token.getTokenHash().getBytes(StandardCharsets.UTF_8),
+                sha256(rawToken == null ? "" : rawToken.trim()).getBytes(StandardCharsets.UTF_8))) {
+            token.registerFailure();
+            throw new ResponseStatusException(BAD_REQUEST, "인증번호가 올바르지 않거나 만료되었습니다.");
         }
         token.getUser().updatePassword(passwordEncoder.encode(newPassword));
         token.markUsed();
@@ -76,10 +82,8 @@ public class AccountRecoveryService {
         return email == null ? "" : email.trim().toLowerCase();
     }
 
-    private String newToken() {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    private String newCode() {
+        return String.format("%06d", RANDOM.nextInt(1_000_000));
     }
 
     private String sha256(String value) {

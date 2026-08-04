@@ -8,7 +8,7 @@ const CHECKLIST_LABELS = {
 };
 
 export default function ContractAnalysisPage({
-  selected, result, busy, activeLocation, question, answer,
+  selected, result, busy, activeLocation, question, answer, questionHistory,
   onDownloadReport, onLocation, onCloseLocation, onQuestion, onQuestionChange,
 }) {
   return <section className="card result">
@@ -63,14 +63,17 @@ export default function ContractAnalysisPage({
           <input value={question} onChange={event => onQuestionChange(event.target.value)} placeholder="예: 야근수당은 어떻게 정해져 있어?" maxLength="500"/>
           <button disabled={busy}>질문</button>
         </form>
-        {answer && <article className="answer">
-          <p>{answer.answer}</p>
-          {answer.contract_sources.map((source, index) => <button className="page-chip" key={index} onClick={() => onLocation(source)}>{source.page}페이지 근거</button>)}
-          {answer.legal_references.map((law, index) => <small key={index}>{law.source_url
-            ? <a href={law.source_url} target="_blank" rel="noreferrer">{law.law_name} {law.article_number}</a>
-            : `${law.law_name} ${law.article_number}`}</small>)}
-          <div className="warning">{answer.warning}</div>
-        </article>}
+        {questionHistory?.length > 0 && <div className="qa-history">
+          {questionHistory.map(item => <article className="answer qa-history-item" key={item.id}>
+            <strong className="qa-question">질문: {item.question}</strong>
+            <p>{item.response.answer}</p>
+            {(item.response.contract_sources ?? []).map((source, index) => <button className="page-chip" key={index} onClick={() => onLocation(source)}>{source.page}페이지 근거</button>)}
+            {(item.response.legal_references ?? []).map((law, index) => <small key={index}>{law.source_url
+              ? <a href={law.source_url} target="_blank" rel="noreferrer">{law.law_name} {law.article_number}</a>
+              : `${law.law_name} ${law.article_number}`}</small>)}
+            <div className="warning">{item.response.warning}</div>
+          </article>)}
+        </div>}
       </section>
     </>}
   </section>;

@@ -2,6 +2,7 @@ package com.lawzic.api.auth;
 
 import com.lawzic.api.analysis.AnalysisService;
 import com.lawzic.api.analysis.LegalConsultationHistoryRepository;
+import com.lawzic.api.analysis.ContractQuestionHistoryRepository;
 import com.lawzic.api.contract.Contract;
 import com.lawzic.api.contract.ContractService;
 import com.lawzic.api.user.User;
@@ -23,6 +24,7 @@ public class AccountService {
     private final ContractService contractService;
     private final AnalysisService analysisService;
     private final LegalConsultationHistoryRepository consultationHistory;
+    private final ContractQuestionHistoryRepository contractQuestionHistory;
     private final PasswordResetTokenRepository passwordResetTokens;
     private final SocialIdentityRepository socialIdentities;
     private final OAuthLoginTicketRepository oauthLoginTickets;
@@ -31,15 +33,15 @@ public class AccountService {
     public User updateAccount(String email, String name, String currentPassword, String newPassword) {
         User user = users.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-        if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 올바르지 않습니다.");
-        }
         String normalizedName = name == null ? "" : name.trim();
         if (normalizedName.isBlank() || normalizedName.length() > 50) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이름은 1자 이상 50자 이하로 입력하세요.");
         }
         user.updateName(normalizedName);
         if (newPassword != null && !newPassword.isBlank()) {
+            if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 올바르지 않습니다.");
+            }
             if (newPassword.length() < 8 || newPassword.length() > 72) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "새 비밀번호는 8자 이상 72자 이하로 입력하세요.");
             }
@@ -66,6 +68,8 @@ public class AccountService {
             contractService.delete(contract.getId(), email);
         }
         contractService.deleteUserUploadDirectory(user.getId());
+        contractQuestionHistory.deleteAllByUserEmail(email);
+        contractQuestionHistory.flush();
         consultationHistory.deleteAllByUserEmail(email);
         consultationHistory.flush();
         passwordResetTokens.deleteAllByUserEmail(email);

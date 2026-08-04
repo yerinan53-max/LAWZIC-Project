@@ -1,6 +1,7 @@
 from app.agent import (
     ClauseDecision, ContractAnalysisAgent, LlmDecision, _is_korean_decision,
     _is_llm_risk_candidate, _is_redundant_clause, _normalize_user_text,
+    _replacement_text,
 )
 from app.analyzer import analyze_contract
 
@@ -33,6 +34,20 @@ class FakeStructuredLlm:
                 "evidence_ids": ["labor-20", "not-retrieved"],
             }],
         })
+
+
+def test_duplicate_llm_recommendation_is_not_used_as_replacement():
+    item = ClauseDecision.model_validate({
+        "clause_type": "CUSTOM_RISK",
+        "title": "손해배상",
+        "original_text": "근로자는 모든 손해를 부담한다.",
+        "risk_level": "HIGH",
+        "reason": "책임 범위가 지나치게 넓습니다.",
+        "recommendation": "책임 범위를 실제 손해로 제한하세요.",
+        "replacement_text": "책임 범위를 실제 손해로 제한하세요.",
+    })
+
+    assert _replacement_text(item, None) is None
 
 
 class FakeLlm:

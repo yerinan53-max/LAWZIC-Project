@@ -5,6 +5,7 @@ import pytest
 
 from app.legal_consultation import (
     LEGACY_EVIDENCE_CITATIONS,
+    LegalConsultationAgent,
     _citation_indices,
     _fallback_answer,
     _is_grounded_generated_answer,
@@ -30,10 +31,14 @@ def law_rag():
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["id"])
 def test_consultation_scope_and_required_sources(case, law_rag):
     history = [LegalChatMessage.model_validate(item) for item in case["history"]]
-    assert is_labor_law_question(case["question"], history) is case["in_scope"]
+    agent = LegalConsultationAgent(law_rag)
+    issues = agent.classifier.classify(case["question"])
+    _, matches = search_consultation_laws(case["question"], history, law_rag, issues)
+    assert (
+        is_consultation_in_scope(case["question"], history, matches) or bool(issues)
+    ) is case["in_scope"]
     if not case["in_scope"]:
         return
-    _, matches = search_consultation_laws(case["question"], history, law_rag)
     evidence_ids = {item["evidence_id"] for item in matches}
     citations = {(item["law_name"], item["article_number"]) for item in matches}
     for required_id in case["required_evidence_ids"]:
@@ -160,6 +165,27 @@ def test_wage_deduction_fallback_starts_with_direct_conclusion():
     assert "[근거 1]" in answer
 
 
+def test_property_damage_wage_deduction_uses_direct_conclusion():
+    matches = [{
+        "evidence_id": "labor-standards-act-43",
+        "law_name": "근로기준법",
+        "article_number": "제43조",
+        "content": "임금은 근로자에게 그 전액을 지급하여야 한다.",
+    }]
+    answer = _fallback_answer(matches, "회사 물건을 망가뜨리면 월급에서 빼도 되나요?")
+    assert answer.startswith("원칙적으로 회사는")
+    assert "임의로 공제할 수 없습니다" in answer.splitlines()[0]
+    assert "장비 파손" in answer
+
+
+def test_consultation_agent_uses_langgraph_workflow(law_rag):
+    nodes = set(LegalConsultationAgent(law_rag).graph.get_graph().nodes)
+    assert {
+        "prepare", "classify_issues", "retrieve_laws", "generate_answer",
+        "verify_sources", "out_of_scope", "insufficient_evidence",
+    } <= nodes
+
+
 def test_forced_resignation_fallback_gives_actionable_steps():
     matches = [
         {"evidence_id": "x23", "law_name": "근로기준법", "article_number": "제23조", "content": "정당한 이유 없는 해고 금지"},
@@ -273,6 +299,7 @@ def test_chat_llm_has_timeout_and_falls_back_when_generation_fails(monkeypatch):
     )
 
     assert received["client_kwargs"]["timeout"] == 45.0
-    assert received["num_predict"] == 400
+    assert received["num_predict"] == 280
+    assert received["keep_alive"] == "15m"
     assert "근로기준법 제53조" in result.answer
     assert result.insufficient_evidence is False

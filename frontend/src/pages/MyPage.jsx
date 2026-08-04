@@ -29,6 +29,7 @@ export default function MyPage({
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [passwordEditorOpen, setPasswordEditorOpen] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -51,11 +52,33 @@ export default function MyPage({
     };
   }, []);
 
+  useEffect(() => {
+    if (!notice) return undefined;
+    const timeout = window.setTimeout(() => setNotice(""), 10000);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+
   const updateAccount = async event => {
     event.preventDefault();
     setError("");
     setNotice("");
-    if (form.newPassword && form.newPassword !== form.newPasswordConfirm) {
+    const nameChanged = form.name.trim() !== user.name.trim();
+    const passwordChangeRequested = passwordEditorOpen && Boolean(
+      form.currentPassword || form.newPassword || form.newPasswordConfirm
+    );
+    if (!nameChanged && !passwordChangeRequested) {
+      setNotice("변경된 사항이 없습니다.");
+      return;
+    }
+    if (passwordChangeRequested && !form.currentPassword) {
+      setError("현재 비밀번호를 입력하세요.");
+      return;
+    }
+    if (passwordChangeRequested && !form.newPassword) {
+      setError("새 비밀번호를 입력하세요.");
+      return;
+    }
+    if (passwordChangeRequested && form.newPassword !== form.newPasswordConfirm) {
       setError("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
       return;
     }
@@ -65,8 +88,8 @@ export default function MyPage({
         method: "PATCH",
         body: JSON.stringify({
           name: form.name,
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword || null,
+          currentPassword: passwordChangeRequested ? form.currentPassword : null,
+          newPassword: passwordChangeRequested ? form.newPassword : null,
         }),
       });
       onUserUpdated(updated);
@@ -77,12 +100,29 @@ export default function MyPage({
         newPassword: "",
         newPasswordConfirm: "",
       }));
+      setPasswordEditorOpen(false);
       setNotice("회원정보가 수정되었습니다.");
     } catch (requestError) {
       setError(requestError.message);
     } finally {
       setSaving(false);
     }
+  };
+
+  const togglePasswordEditor = () => {
+    setPasswordEditorOpen(open => {
+      if (open) {
+        setForm(value => ({
+          ...value,
+          currentPassword: "",
+          newPassword: "",
+          newPasswordConfirm: "",
+        }));
+      }
+      return !open;
+    });
+    setError("");
+    setNotice("");
   };
 
   const clearConsultations = async () => {
@@ -111,9 +151,13 @@ export default function MyPage({
           <h2>마이페이지</h2>
         </div>
         <div className="user">
-          <button className="secondary" onClick={onWorkspace}>계약서 분석실</button>
-          <button className="secondary" onClick={onConsultation}>노동법 AI 상담</button>
-          <button className="secondary" onClick={onLogout}>로그아웃</button>
+          <span className="landing-user-name" title={`${user.name}님`}>
+            <span className="landing-user-initial" aria-hidden="true">{user.name?.trim().charAt(0) || "U"}</span>
+            <span className="landing-user-label">{user.name}님</span>
+          </span>
+          <button className="landing-nav-link" onClick={onWorkspace}>계약서 분석실</button>
+          <button className="landing-nav-link" onClick={onConsultation}>노동법 AI 상담</button>
+          <button className="landing-nav-link" onClick={onLogout}>로그아웃</button>
         </div>
       </header>
 
@@ -124,12 +168,27 @@ export default function MyPage({
           <form onSubmit={updateAccount}>
             <label>이메일<input value={user.email} disabled /></label>
             <label>이름<input value={form.name} maxLength="50" onChange={event => setForm({ ...form, name: event.target.value })} required /></label>
-            <label>현재 비밀번호<input type="password" value={form.currentPassword} onChange={event => setForm({ ...form, currentPassword: event.target.value })} autoComplete="current-password" required /></label>
-            <label>새 비밀번호 <small>변경하지 않으려면 비워두세요.</small><input type="password" minLength={form.newPassword ? 8 : undefined} value={form.newPassword} onChange={event => setForm({ ...form, newPassword: event.target.value })} autoComplete="new-password" /></label>
-            <label>새 비밀번호 확인<input type="password" value={form.newPasswordConfirm} onChange={event => setForm({ ...form, newPasswordConfirm: event.target.value })} autoComplete="new-password" /></label>
-            {notice && <p className="success-notice">{notice}</p>}
+            {!passwordEditorOpen && (
+              <button
+                type="button"
+                className="secondary profile-password-button"
+                onClick={togglePasswordEditor}
+                aria-controls="profile-password-fields"
+              >
+                비밀번호 변경
+              </button>
+            )}
+            {passwordEditorOpen && (
+              <div id="profile-password-fields" className="profile-password-fields">
+                <label>현재 비밀번호<input type="password" value={form.currentPassword} onChange={event => setForm({ ...form, currentPassword: event.target.value })} autoComplete="current-password" required /></label>
+                <label>새 비밀번호 <small>8자 이상 입력하세요.</small><input type="password" minLength="8" maxLength="72" value={form.newPassword} onChange={event => setForm({ ...form, newPassword: event.target.value })} autoComplete="new-password" required /></label>
+                <label>새 비밀번호 확인<input type="password" minLength="8" maxLength="72" value={form.newPasswordConfirm} onChange={event => setForm({ ...form, newPasswordConfirm: event.target.value })} autoComplete="new-password" required /></label>
+                <button type="button" className="secondary profile-password-cancel" onClick={togglePasswordEditor}>비밀번호 변경 취소</button>
+              </div>
+            )}
+            {notice && <p className={`success-notice ${notice === "변경된 사항이 없습니다." ? "neutral-notice" : ""}`}>{notice}</p>}
             {error && <p className="error">{error}</p>}
-            <button disabled={saving}>{saving ? "저장 중…" : "회원정보 저장"}</button>
+            <button className="profile-save-button" disabled={saving}>{saving ? "저장 중…" : "회원정보 저장"}</button>
           </form>
         </section>
 
@@ -141,7 +200,7 @@ export default function MyPage({
 
         <section className="card mypage-history">
           <div className="mypage-section-title">
-            <div><h3>계약서 분석 이력</h3><p>업로드한 계약서와 분석 상태를 확인합니다.</p></div>
+            <h3>계약서 분석 이력</h3>
             <button className="secondary" onClick={onWorkspace}>분석실로 이동</button>
           </div>
           <div className="mypage-scroll">
@@ -161,7 +220,7 @@ export default function MyPage({
 
         <section className="card mypage-history consultation-history">
           <div className="mypage-section-title">
-            <div><h3>노동법 AI 상담 이력</h3><p>질문과 답변, 참고 법령을 다시 확인합니다.</p></div>
+            <h3>노동법 AI 상담 이력</h3>
             {consultations.length > 0 && <button className="danger-outline" onClick={clearConsultations}>상담 이력 전체 삭제</button>}
           </div>
           <div className="mypage-scroll">

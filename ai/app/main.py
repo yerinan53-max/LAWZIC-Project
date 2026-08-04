@@ -5,14 +5,20 @@ from starlette.concurrency import run_in_threadpool
 
 from . import config as _config
 from .agent import ContractAnalysisAgent
-from .document_features import answer_legal_question, answer_question, create_report, enrich_locations
+from .document_features import create_report, enrich_locations
+from .legal_consultation import LegalConsultationAgent
+from .contract_rag import ContractRagService
+from .question_agent import ContractQuestionAgent
 from .pdf_service import PdfReadError, extract_document
 from .rag import LawRagService
 from .schemas import AnalysisResponse, LegalChatRequest, LegalChatResponse, QuestionResponse
 
 app = FastAPI(title="LAWZIC API", version="1.0.0")
 rag = LawRagService()
+contract_rag = ContractRagService()
 agent = ContractAnalysisAgent(rag)
+question_agent = ContractQuestionAgent(contract_rag, rag)
+legal_consultation_agent = LegalConsultationAgent(rag)
 
 
 @app.get("/health")
@@ -39,24 +45,46 @@ async def analyze(contract_id: int = Form(...), file: UploadFile = File(...)) ->
         text, pages = extract_document(content)
     except PdfReadError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    await run_in_threadpool(contract_rag.ingest, contract_id, pages)
     result = await run_in_threadpool(agent.analyze, contract_id, text)
     return enrich_locations(result, pages)
 
 
 @app.post("/internal/v1/question", response_model=QuestionResponse)
-async def question(question: str = Form(..., min_length=2), file: UploadFile = File(...)) -> QuestionResponse:
-    content = await file.read()
+async def question(
+    contract_id: int = Form(...), question: str = Form(..., min_length=2),
+    history: str = Form("[]"), file: UploadFile | None = File(None),
+) -> QuestionResponse:
+    import json
     try:
-        _, pages = extract_document(content)
-    except PdfReadError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return await run_in_threadpool(answer_question, question, pages, rag)
+        parsed_history = json.loads(history)
+        if not isinstance(parsed_history, list):
+            parsed_history = []
+    except json.JSONDecodeError:
+        parsed_history = []
+    indexed = await run_in_threadpool(contract_rag.has_index, contract_id)
+    if not indexed and file is not None:
+        content = await file.read()
+        try:
+            _, pages = extract_document(content)
+        except PdfReadError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        await run_in_threadpool(contract_rag.ingest, contract_id, pages)
+        indexed = True
+    if not indexed:
+        raise HTTPException(status_code=409, detail="계약서 벡터 인덱스가 없습니다. 계약서를 다시 분석해 주세요.")
+    return await run_in_threadpool(question_agent.answer, contract_id, question, parsed_history[-6:])
+
+
+@app.delete("/internal/v1/contracts/{contract_id}/index", status_code=204)
+async def delete_contract_index(contract_id: int) -> None:
+    await run_in_threadpool(contract_rag.delete, contract_id)
 
 
 @app.post("/internal/v1/legal-chat", response_model=LegalChatResponse)
 async def legal_chat(request: LegalChatRequest) -> LegalChatResponse:
     return await run_in_threadpool(
-        answer_legal_question, request.question.strip(), request.history, rag,
+        legal_consultation_agent.answer, request.question.strip(), request.history,
     )
 
 

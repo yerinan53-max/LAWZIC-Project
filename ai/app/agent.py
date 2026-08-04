@@ -213,6 +213,17 @@ def _normalize_user_text(value: str) -> str:
     return normalized
 
 
+def _replacement_text(item: ClauseDecision, baseline_match: RiskClause | None) -> str | None:
+    """Prefer vetted clause language and never expose duplicated advice as a replacement."""
+    if baseline_match and baseline_match.replacement_text:
+        return baseline_match.replacement_text
+    if not item.replacement_text:
+        return None
+    replacement = _normalize_user_text(item.replacement_text).strip()
+    recommendation = _normalize_user_text(item.recommendation).strip()
+    return replacement if replacement != recommendation else None
+
+
 def _contains_internal_contract_code(value: str) -> bool:
     return re.search(r"\b(?:EMPLOYMENT|GENERAL)\b", value, flags=re.IGNORECASE) is not None
 
@@ -355,10 +366,7 @@ class ContractAnalysisAgent:
                     subject=semantic.subject, action=semantic.action, target=semantic.target,
                     negated=semantic.negated, conditional=semantic.conditional,
                 ),
-                replacement_text=next(
-                    (base.replacement_text for base in baseline.clauses
-                     if base.clause_type.upper() == item.clause_type.upper()), None
-                ) or (_normalize_user_text(item.replacement_text) if item.replacement_text else None),
+                replacement_text=_replacement_text(item, baseline_match),
                 legal_references=references,
             ))
         # 작은 로컬 LLM이 명백한 위험을 놓쳐도 규칙 탐지 결과가 사라지지 않도록 병합한다.

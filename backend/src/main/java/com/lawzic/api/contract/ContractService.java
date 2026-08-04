@@ -1,6 +1,8 @@
 package com.lawzic.api.contract;
 
 import com.lawzic.api.analysis.AnalysisResultRepository;
+import com.lawzic.api.analysis.AiClient;
+import com.lawzic.api.analysis.ContractQuestionHistoryRepository;
 import com.lawzic.api.user.User;
 import com.lawzic.api.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import java.util.UUID;
 public class ContractService {
     private final ContractRepository contracts;
     private final AnalysisResultRepository analysisResults;
+    private final ContractQuestionHistoryRepository questionHistory;
+    private final AiClient aiClient;
     private final UserRepository users;
     @Value("${app.upload-dir}") private String uploadDir;
 
@@ -85,9 +89,16 @@ public class ContractService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "계약서 파일 삭제에 실패했습니다.");
         }
 
+        questionHistory.deleteAllByContractId(id);
+        questionHistory.flush();
         analysisResults.findByContractId(id).ifPresent(analysisResults::delete);
         analysisResults.flush();
         contracts.delete(contract);
+        try {
+            aiClient.deleteContractIndex(id);
+        } catch (RuntimeException ignored) {
+            // AI 서버가 꺼져 있어도 사용자의 계약서 삭제는 완료한다.
+        }
     }
 
     private void validatePdf(MultipartFile file) {

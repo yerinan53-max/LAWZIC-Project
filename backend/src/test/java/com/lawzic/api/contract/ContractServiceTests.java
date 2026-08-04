@@ -1,6 +1,8 @@
 package com.lawzic.api.contract;
 
 import com.lawzic.api.analysis.AnalysisResultRepository;
+import com.lawzic.api.analysis.AiClient;
+import com.lawzic.api.analysis.ContractQuestionHistoryRepository;
 import com.lawzic.api.user.User;
 import com.lawzic.api.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ import static org.mockito.Mockito.*;
 class ContractServiceTests {
     @Mock ContractRepository contracts;
     @Mock AnalysisResultRepository analysisResults;
+    @Mock ContractQuestionHistoryRepository questionHistory;
+    @Mock AiClient aiClient;
     @Mock UserRepository users;
     @TempDir Path uploadDir;
 
@@ -32,7 +36,7 @@ class ContractServiceTests {
         Contract first = new Contract(mock(User.class), "first.pdf", "first.pdf", firstFile.toString(), Files.size(firstFile));
         Contract second = new Contract(mock(User.class), "second.pdf", "second.pdf", secondFile.toString(), Files.size(secondFile));
 
-        ContractService service = new ContractService(contracts, analysisResults, users);
+        ContractService service = new ContractService(contracts, analysisResults, questionHistory, aiClient, users);
         ReflectionTestUtils.setField(service, "uploadDir", uploadDir.toString());
         when(contracts.findByIdAndUserEmail(1L, "owner@example.com")).thenReturn(Optional.of(first));
         when(analysisResults.findByContractId(1L)).thenReturn(Optional.empty());

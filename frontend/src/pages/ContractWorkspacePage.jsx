@@ -58,7 +58,15 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
         <button className="brand-home" onClick={onHome} aria-label="LAWZIC 메인화면으로 이동"><span className="brand-logo">LA<span>WZ</span>IC</span></button>
         <h2>계약서 분석실</h2>
       </div>
-      <div className="user"><span>{user?.name ?? user?.email}님</span><button className="secondary" onClick={onConsultation}>법률 AI 상담</button><button className="secondary" onClick={onMyPage}>마이페이지</button><button className="secondary" onClick={onLogout}>로그아웃</button></div>
+      <div className="user">
+        <button className="landing-user-name" onClick={onMyPage} title="마이페이지로 이동" aria-label={`${user?.name ?? user?.email}님의 마이페이지로 이동`}>
+          <span className="landing-user-initial" aria-hidden="true">{(user?.name ?? user?.email)?.trim().charAt(0) || "U"}</span>
+          <span className="landing-user-label">{user?.name ?? user?.email}님</span>
+        </button>
+        <button className="landing-nav-link" onClick={onConsultation}>법률 AI 상담</button>
+        <button className="landing-nav-link" onClick={onMyPage}>마이페이지</button>
+        <button className="landing-nav-link" onClick={onLogout}>로그아웃</button>
+      </div>
     </header>
     <main className="grid">
       <div className="workspace-sidebar">
@@ -89,6 +97,7 @@ export default function ContractWorkspacePage({user, onLogout, onHome, onConsult
         activeLocation={workspace.activeLocation}
         question={workspace.question}
         answer={workspace.answer}
+        questionHistory={workspace.questionHistory}
         onDownloadReport={workspace.downloadReport}
         onLocation={workspace.setActiveLocation}
         onCloseLocation={() => workspace.setActiveLocation(null)}

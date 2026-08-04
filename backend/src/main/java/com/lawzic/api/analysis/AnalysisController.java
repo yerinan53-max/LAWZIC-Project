@@ -49,6 +49,12 @@ public class AnalysisController {
         return analysisService.question(contractId, principal.getName(), request.question());
     }
 
+    @GetMapping("/questions")
+    public java.util.List<AnalysisService.QuestionHistoryResponse> questionHistory(
+            @PathVariable Long contractId, Principal principal) {
+        return analysisService.questionHistory(contractId, principal.getName());
+    }
+
     @GetMapping("/report")
     public ResponseEntity<byte[]> report(@PathVariable Long contractId, Principal principal) {
         byte[] content = analysisService.report(contractId, principal.getName());

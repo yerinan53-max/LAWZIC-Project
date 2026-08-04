@@ -24,6 +24,8 @@ public class PasswordResetToken {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
     private Instant usedAt;
+    @Column(nullable = false)
+    private int failedAttempts = 0;
 
     public PasswordResetToken(User user, String tokenHash, Instant expiresAt) {
         this.user = user;
@@ -32,8 +34,10 @@ public class PasswordResetToken {
     }
 
     public boolean isUsable(Instant now) {
-        return usedAt == null && expiresAt.isAfter(now);
+        return usedAt == null && failedAttempts < 5 && expiresAt.isAfter(now);
     }
+
+    public void registerFailure() { failedAttempts++; }
 
     public void markUsed() {
         usedAt = Instant.now();

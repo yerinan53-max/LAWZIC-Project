@@ -52,6 +52,7 @@ class LawRagService:
         self.model_name = os.getenv("EMBEDDING_MODEL", "jhgan/ko-sroberta-multitask")
         self._collection = None
         self._client = None
+        self._embedding = None
         self._ready = False
         self._lock = Lock()
 
@@ -63,12 +64,18 @@ class LawRagService:
                 client = chromadb.PersistentClient(path=str(self.db_path))
                 self._client = client
                 embedding = SentenceTransformerEmbedding(self.model_name)
+                self._embedding = embedding
                 self._collection = client.get_or_create_collection(
                     name=self.COLLECTION_NAME,
                     embedding_function=embedding,
                     metadata={"hnsw:space": "cosine", "corpus_sha256": self._corpus_hash()},
                 )
         return self._collection
+
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        """법령 검색과 같은 Ko-SRoBERTa 공간에서 상담 쟁점을 비교한다."""
+        self._get_collection()
+        return self._embedding(texts)
 
     def _corpus_hash(self) -> str:
         if not self.manifest_path.exists():
