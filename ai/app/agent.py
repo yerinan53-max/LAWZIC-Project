@@ -282,7 +282,11 @@ class ContractAnalysisAgent:
             model=os.getenv("OLLAMA_MODEL", "gemma2:2b"),
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             temperature=0,
-            num_predict=2400,
+            num_predict=int(os.getenv("OLLAMA_ANALYSIS_NUM_PREDICT", "360")),
+            keep_alive=os.getenv("OLLAMA_KEEP_ALIVE", "15m"),
+            client_kwargs={
+                "timeout": float(os.getenv("OLLAMA_ANALYSIS_TIMEOUT_SECONDS", "240")),
+            },
         )
 
     def _llm_analyze(self, state: AgentState) -> dict:
@@ -304,11 +308,6 @@ class ContractAnalysisAgent:
             decision = structured_llm.invoke([
                 ("system", SYSTEM_PROMPT), ("human", prompt)
             ])
-            if not _is_korean_decision(decision):
-                decision = structured_llm.invoke([
-                    ("system", SYSTEM_PROMPT),
-                    ("human", "이전 응답에 영어가 포함되어 사용할 수 없습니다. 모든 설명과 제목을 반드시 한국어로 작성하세요.\n\n" + prompt),
-                ])
             if not _is_korean_decision(decision):
                 return {"llm_error": "LLM이 한국어 출력 형식을 지키지 않아 한국어 규칙 분석으로 전환했습니다."}
             return {"llm_decision": decision}

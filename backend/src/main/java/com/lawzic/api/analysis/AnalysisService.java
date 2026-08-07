@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lawzic.api.contract.Contract;
 import com.lawzic.api.contract.ContractRepository;
 import com.lawzic.api.contract.ContractService;
+import com.lawzic.api.contract.PdfTextLayerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PreDestroy;
@@ -29,6 +30,7 @@ public class AnalysisService {
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
     private final ContractQuestionHistoryRepository questionHistory;
+    private final PdfTextLayerService pdfTextLayerService;
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final ConcurrentHashMap<Long, Future<?>> jobs = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Long, Long> activeRuns = new ConcurrentHashMap<>();
@@ -37,6 +39,7 @@ public class AnalysisService {
     @Transactional
     public synchronized Contract start(Long contractId, String email) {
         Contract contract = contractService.owned(contractId, email);
+        pdfTextLayerService.requireExtractableText(contract.getFilePath());
         Future<?> current = jobs.get(contractId);
         if (current != null && !current.isDone()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 분석 중인 계약서입니다.");

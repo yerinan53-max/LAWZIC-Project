@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lawzic.api.contract.Contract;
 import com.lawzic.api.contract.ContractRepository;
 import com.lawzic.api.contract.ContractService;
+import com.lawzic.api.contract.PdfTextLayerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,14 +28,35 @@ class AnalysisServiceTests {
     private final AnalysisResultRepository results = mock(AnalysisResultRepository.class);
     private final AiClient aiClient = mock(AiClient.class);
     private final ContractQuestionHistoryRepository questionHistory = mock(ContractQuestionHistoryRepository.class);
+    private final PdfTextLayerService pdfTextLayerService = mock(PdfTextLayerService.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AnalysisService service = new AnalysisService(
-            contractService, contracts, results, aiClient, objectMapper, questionHistory
+            contractService, contracts, results, aiClient, objectMapper, questionHistory, pdfTextLayerService
     );
 
     @AfterEach
     void tearDown() {
         service.shutdown();
+    }
+
+    @Test
+    void scannedPdfIsRejectedBeforeAnalysisJobStarts() {
+        Contract contract = mock(Contract.class);
+        when(contract.getFilePath()).thenReturn("scanned.pdf");
+        when(contractService.owned(1L, "owner@example.com")).thenReturn(contract);
+        doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+                "이 PDF는 스캔 이미지로 구성되어 텍스트를 인식할 수 없습니다."
+        )).when(pdfTextLayerService).requireExtractableText("scanned.pdf");
+
+        var error = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> service.start(1L, "owner@example.com")
+        );
+
+        assertEquals(422, error.getStatusCode().value());
+        verify(contract, never()).markProcessing();
+        verify(aiClient, never()).analyze(anyLong(), anyString());
     }
 
     @Test

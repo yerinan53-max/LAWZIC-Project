@@ -104,7 +104,7 @@ export default function useContractWorkspace() {
           return true;
         }
         if (status.status === "FAILED") {
-          throw new Error("AI 분석을 완료하지 못했습니다. AI 서버와 Ollama 상태를 확인하세요.");
+          throw new Error("계약서 분석 중 오류가 발생했습니다. 잠시 후 재분석하거나 서버 로그를 확인해 주세요.");
         }
         if (status.status === "CANCELLED" || status.status === "UPLOADED") {
           await load();

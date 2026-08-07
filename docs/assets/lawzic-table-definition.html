@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>LAWZIC 테이블 정의서</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:54px 64px 64px;background:#f5f7f9;color:#14263d;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}h1{margin:0 0 12px;text-align:center;font-size:42px}p.subtitle{margin:0 0 42px;text-align:center;color:#52677a;font-size:21px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}.card{overflow:hidden;background:#fff;border:2px solid #cbd6df;border-radius:14px}.card h2{margin:0;padding:18px 22px;background:#14263d;color:#fff;font-size:25px}.card h2 span{margin-left:10px;color:#cbd8e2;font-size:18px;font-weight:400}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:19px}th{padding:13px 15px;background:#dfe8ef;text-align:left;border-bottom:2px solid #b9c8d3}td{padding:12px 15px;border-bottom:1px solid #dbe3e9;vertical-align:middle}tr:last-child td{border-bottom:0}th:nth-child(1),td:nth-child(1){width:34%;font-family:Consolas,"Malgun Gothic",sans-serif}th:nth-child(2),td:nth-child(2){width:17%;text-align:center}td:nth-child(2){font-weight:700;color:#304d66}th:nth-child(3),td:nth-child(3){width:49%}.note{margin-top:34px;padding:18px 24px;background:#e7edf2;border-left:6px solid #54738c;font-size:19px;color:#344b60}.key{display:inline-block;min-width:54px;padding:3px 7px;border-radius:5px;background:#e5edf2}.empty{color:#9aa9b5;font-weight:400}
+body.single{padding:24px;background:#f5f7f9}
+body.single h1,body.single .subtitle,body.single .note{display:none}
+body.single .grid{display:block}
+body.single .card{display:none}
+body.single .card.active{display:block}
+</style>
+</head>
+<body>
+<h1>LAWZIC 테이블 정의서</h1>
+<p class="subtitle">MariaDB 물리 테이블 기준 · PK(기본키) / FK(외래키) / UK(고유키)</p>
+<div class="grid">
+  <section class="card"><h2>회원 <span>users</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>회원 고유번호</td></tr><tr><td>email</td><td><span class="key">UK</span></td><td>로그인 이메일, 중복 불가</td></tr><tr><td>name</td><td class="empty">-</td><td>회원 이름</td></tr><tr><td>password_hash</td><td class="empty">-</td><td>BCrypt 비밀번호 해시</td></tr><tr><td>role</td><td class="empty">-</td><td>회원 권한</td></tr><tr><td>created_at</td><td class="empty">-</td><td>회원 가입 시각</td></tr><tr><td>terms_agreed_at</td><td class="empty">-</td><td>이용약관 동의 시각</td></tr><tr><td>terms_version</td><td class="empty">-</td><td>동의한 이용약관 버전</td></tr><tr><td>privacy_agreed_at</td><td class="empty">-</td><td>개인정보 수집·이용 동의 시각</td></tr><tr><td>privacy_version</td><td class="empty">-</td><td>동의한 개인정보 처리방침 버전</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>계약서 <span>contracts</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>계약서 고유번호</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>업로드 회원, users.id 참조</td></tr><tr><td>original_filename</td><td class="empty">-</td><td>사용자가 올린 원본 파일명</td></tr><tr><td>stored_filename</td><td><span class="key">UK</span></td><td>서버 내부 고유 파일명</td></tr><tr><td>file_path</td><td class="empty">-</td><td>PDF 서버 저장 경로</td></tr><tr><td>file_size</td><td class="empty">-</td><td>PDF 파일 크기</td></tr><tr><td>status</td><td class="empty">-</td><td>업로드·분석 중·완료·실패 상태</td></tr><tr><td>uploaded_at</td><td class="empty">-</td><td>파일 업로드 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>계약서 분석 결과 <span>analysis_results</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>분석 결과 고유번호</td></tr><tr><td>contract_id</td><td><span class="key">FK·UK</span></td><td>contracts.id 참조, 계약서당 결과 1개</td></tr><tr><td>result_json</td><td class="empty">-</td><td>요약·위험도·조항·법령 JSON</td></tr><tr><td>created_at</td><td class="empty">-</td><td>분석 결과 최초 생성 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>노동법 AI 상담 이력 <span>legal_consultation_history</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>상담 이력 고유번호</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>질문 회원, users.id 참조</td></tr><tr><td>question</td><td class="empty">-</td><td>사용자가 입력한 노동법 질문</td></tr><tr><td>response_json</td><td class="empty">-</td><td>AI 답변과 법령 출처 JSON</td></tr><tr><td>created_at</td><td class="empty">-</td><td>상담 생성 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>소셜 계정 연결 <span>social_identities</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>소셜 계정 연결 고유번호</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>연결 회원, users.id 참조</td></tr><tr><td>provider</td><td><span class="key">복합 UK</span></td><td>Google 또는 Naver</td></tr><tr><td>provider_user_id</td><td><span class="key">복합 UK</span></td><td>소셜 제공자의 사용자 고유 ID</td></tr><tr><td>connected_at</td><td class="empty">-</td><td>소셜 계정 연결 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>소셜 로그인 임시 티켓 <span>oauth_login_tickets</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>임시 티켓 고유번호</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>연결 회원, 미연결 상태는 NULL 가능</td></tr><tr><td>token_hash</td><td><span class="key">UK</span></td><td>일회성 OAuth 티켓 해시</td></tr><tr><td>provider</td><td class="empty">-</td><td>Google 또는 Naver</td></tr><tr><td>provider_user_id</td><td class="empty">-</td><td>소셜 제공자의 사용자 ID</td></tr><tr><td>email</td><td class="empty">-</td><td>소셜 서비스 제공 이메일</td></tr><tr><td>name</td><td class="empty">-</td><td>소셜 서비스 제공 이름</td></tr><tr><td>consent_required</td><td class="empty">-</td><td>필수 약관 동의 필요 여부</td></tr><tr><td>linking_required</td><td class="empty">-</td><td>기존 계정 연결 필요 여부</td></tr><tr><td>expires_at</td><td class="empty">-</td><td>임시 티켓 만료 시각</td></tr><tr><td>used_at</td><td class="empty">-</td><td>티켓 사용 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>비밀번호 재설정 인증 <span>password_reset_tokens</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>재설정 인증 고유번호</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>재설정 회원, users.id 참조</td></tr><tr><td>token_hash</td><td><span class="key">UK</span></td><td>6자리 인증번호의 SHA-256 해시</td></tr><tr><td>failed_attempts</td><td class="empty">-</td><td>인증번호 입력 실패 횟수</td></tr><tr><td>created_at</td><td class="empty">-</td><td>인증번호 생성 시각</td></tr><tr><td>expires_at</td><td class="empty">-</td><td>인증번호 만료 시각</td></tr><tr><td>used_at</td><td class="empty">-</td><td>인증번호 사용 완료 시각</td></tr>
+  </tbody></table></section>
+  <section class="card"><h2>계약서 질문 이력 <span>contract_question_history</span></h2><table><thead><tr><th>컬럼명</th><th>키</th><th>설명</th></tr></thead><tbody>
+    <tr><td>id</td><td><span class="key">PK</span></td><td>계약서 질문 이력 고유번호</td></tr><tr><td>contract_id</td><td><span class="key">FK</span></td><td>질문 대상 계약서, contracts.id 참조</td></tr><tr><td>user_id</td><td><span class="key">FK</span></td><td>질문 회원, users.id 참조</td></tr><tr><td>question</td><td class="empty">-</td><td>계약서에 대해 입력한 질문</td></tr><tr><td>response_json</td><td class="empty">-</td><td>AI 답변·계약서 근거·법령 JSON</td></tr><tr><td>created_at</td><td class="empty">-</td><td>질문 생성 시각</td></tr>
+  </tbody></table></section>
+</div>
+<div class="note"><strong>관계 요약:</strong> users 1:N contracts · users 1:N 상담/질문/인증 이력 · contracts 1:0..1 analysis_results · contracts 1:N contract_question_history</div>
+<script>
+const tableNumber = Number(new URLSearchParams(location.search).get('table'));
+if (tableNumber >= 1 && tableNumber <= 8) {
+  document.body.classList.add('single');
+  document.querySelectorAll('.card')[tableNumber - 1].classList.add('active');
+}
+</script>
+</body>
+</html>

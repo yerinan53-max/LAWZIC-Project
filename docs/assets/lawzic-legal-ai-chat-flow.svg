@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="900" viewBox="0 0 1800 900">
+<rect width="1800" height="900" fill="#f7f9fb"/><defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0v6l9-3z" fill="#8299ab"/></marker></defs>
+<style>text{font-family:"Malgun Gothic","Noto Sans KR",sans-serif;fill:#14263d}.t{font-size:38px;font-weight:700}.h{font-size:23px;font-weight:700}.b{font-size:18px;fill:#405469}.s{font-size:17px;fill:#52677a}.box{fill:#fff;stroke:#c5d2dc;stroke-width:2}.soft{fill:#e5edf2;stroke:#98adbc;stroke-width:2}.decision{fill:#eef3f6;stroke:#7891a5;stroke-width:2}.line{fill:none;stroke:#8299ab;stroke-width:3;marker-end:url(#a)}</style>
+<text x="900" y="60" text-anchor="middle" class="t">LAWZIC 노동법 AI 상담 흐름도</text>
+<rect x="55" y="160" width="245" height="130" rx="15" class="box"/><text x="177" y="208" text-anchor="middle" class="h">노동법 질문 입력</text><text x="177" y="247" text-anchor="middle" class="b">질문 예시 또는 직접 입력</text><text x="177" y="274" text-anchor="middle" class="b">최근 대화 12개 포함</text>
+<rect x="365" y="160" width="260" height="130" rx="15" class="soft"/><text x="495" y="208" text-anchor="middle" class="h">Spring Boot 검증</text><text x="495" y="247" text-anchor="middle" class="b">JWT 사용자 확인</text><text x="495" y="274" text-anchor="middle" class="b">길이 · 역할 · 이력 검사</text>
+<rect x="690" y="160" width="275" height="130" rx="15" class="box"/><text x="827" y="208" text-anchor="middle" class="h">질문 문맥 구성</text><text x="827" y="247" text-anchor="middle" class="b">후속 질문이면 직전 문맥 결합</text><text x="827" y="274" text-anchor="middle" class="b">다른 주제 검색 오염 방지</text>
+<rect x="1030" y="160" width="270" height="130" rx="15" class="soft"/><text x="1165" y="208" text-anchor="middle" class="h">법령 RAG 검색</text><text x="1165" y="247" text-anchor="middle" class="b">ChromaDB 관련 조문 검색</text><text x="1165" y="274" text-anchor="middle" class="b">하이브리드 관련성 평가</text>
+<polygon points="1510,145 1665,225 1510,305 1355,225" class="decision"/><text x="1510" y="216" text-anchor="middle" class="h">노동법 범위와</text><text x="1510" y="247" text-anchor="middle" class="b">충분한 근거 확인</text>
+<path class="line" d="M300 225h65"/><path class="line" d="M625 225h65"/><path class="line" d="M965 225h65"/><path class="line" d="M1300 225h55"/>
+<rect x="190" y="475" width="325" height="140" rx="15" class="box"/><text x="352" y="522" text-anchor="middle" class="h">안전 안내 응답</text><text x="352" y="561" text-anchor="middle" class="b">지원 범위 밖 또는 근거 부족</text><text x="352" y="591" text-anchor="middle" class="b">추측하지 않고 확인 필요 안내</text>
+<rect x="735" y="475" width="330" height="140" rx="15" class="soft"/><text x="900" y="522" text-anchor="middle" class="h">Ollama LLM 답변 생성</text><text x="900" y="561" text-anchor="middle" class="b">검색된 법령만 근거로 사용</text><text x="900" y="591" text-anchor="middle" class="b">한국어 답변 · 인용 출처 생성</text>
+<path class="line" d="M1440 283v120H900v72"/><text x="1370" y="327" class="s">근거 충분</text>
+<path class="line" d="M1580 286v200H515"/><text x="1590" y="342" class="s">범위 밖·근거 부족</text>
+<rect x="535" y="720" width="330" height="120" rx="15" fill="#14263d"/><text x="700" y="768" text-anchor="middle" style="font-size:22px;font-weight:700;fill:#fff">상담 이력 DB 저장</text><text x="700" y="806" text-anchor="middle" style="font-size:18px;fill:#fff">질문 · 답변 · 법령 출처</text>
+<rect x="1035" y="720" width="470" height="120" rx="15" class="soft"/><text x="1270" y="768" text-anchor="middle" class="h">React 상담 화면 출력</text><text x="1270" y="806" text-anchor="middle" class="b">AI 답변 · 공식 법령 링크 · 주의 문구</text>
+<path class="line" d="M352 615v105h348"/><path class="line" d="M900 615v60H700v45"/><path class="line" d="M865 780h170"/>
+</svg>

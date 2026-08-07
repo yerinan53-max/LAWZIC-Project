@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Fallback · 노동법 AI 상담</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:1600px;background:#eef2f6}
+body{padding:42px 48px 48px;font-family:"Malgun Gothic","Noto Sans KR",sans-serif;color:#14263d}
+.heading{margin:0 0 10px;font-size:34px;font-weight:700;letter-spacing:-0.5px}
+.subtitle{margin:0 0 26px;color:#53697d;font-size:20px}
+.editor{overflow:hidden;border:1px solid #30465e;border-radius:14px;background:#0d1117;box-shadow:0 12px 30px rgba(20,38,61,.15)}
+.bar{display:flex;align-items:center;gap:10px;height:48px;padding:0 18px;background:#162337;border-bottom:1px solid #33445a}
+.dot{width:12px;height:12px;border-radius:50%}.red{background:#ff6b6b}.yellow{background:#ffd166}.green{background:#4ecb71}
+.filename{margin-left:10px;color:#c7d4e2;font:16px Consolas,monospace}
+.highlight{margin:0;padding:20px 0;background:#0d1117}
+.highlight table{width:100%;border-spacing:0}
+.highlight pre{margin:0;font:18px/1.45 Consolas,"D2Coding",monospace;tab-size:4}
+.highlight .linenos{width:64px;padding:0 15px 0 12px;border-right:1px solid #263445;color:#718096;text-align:right;user-select:none}
+.highlight .code{padding:0 22px}
+pre { line-height: 125%; }
+td.linenos .normal { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #6e7681 }
+.highlight { background: #0d1117; color: #E6EDF3 }
+.highlight .c { color: #8B949E; font-style: italic } /* Comment */
+.highlight .err { color: #F85149 } /* Error */
+.highlight .esc { color: #E6EDF3 } /* Escape */
+.highlight .g { color: #E6EDF3 } /* Generic */
+.highlight .k { color: #FF7B72 } /* Keyword */
+.highlight .l { color: #A5D6FF } /* Literal */
+.highlight .n { color: #E6EDF3 } /* Name */
+.highlight .o { color: #FF7B72; font-weight: bold } /* Operator */
+.highlight .x { color: #E6EDF3 } /* Other */
+.highlight .p { color: #E6EDF3 } /* Punctuation */
+.highlight .ch { color: #8B949E; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #8B949E; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Preproc */
+.highlight .cpf { color: #8B949E; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #8B949E; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #FFA198; background-color: #490202 } /* Generic.Deleted */
+.highlight .ge { color: #E6EDF3; font-style: italic } /* Generic.Emph */
+.highlight .ges { color: #E6EDF3; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #FFA198 } /* Generic.Error */
+.highlight .gh { color: #79C0FF; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #56D364; background-color: #0F5323 } /* Generic.Inserted */
+.highlight .go { color: #8B949E } /* Generic.Output */
+.highlight .gp { color: #8B949E } /* Generic.Prompt */
+.highlight .gs { color: #E6EDF3; font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #79C0FF } /* Generic.Subheading */
+.highlight .gt { color: #FF7B72 } /* Generic.Traceback */
+.highlight .g-Underline { color: #E6EDF3; text-decoration: underline } /* Generic.Underline */
+.highlight .kc { color: #79C0FF } /* Keyword.Constant */
+.highlight .kd { color: #FF7B72 } /* Keyword.Declaration */
+.highlight .kn { color: #FF7B72 } /* Keyword.Namespace */
+.highlight .kp { color: #79C0FF } /* Keyword.Pseudo */
+.highlight .kr { color: #FF7B72 } /* Keyword.Reserved */
+.highlight .kt { color: #FF7B72 } /* Keyword.Type */
+.highlight .ld { color: #79C0FF } /* Literal.Date */
+.highlight .m { color: #A5D6FF } /* Literal.Number */
+.highlight .s { color: #A5D6FF } /* Literal.String */
+.highlight .na { color: #E6EDF3 } /* Name.Attribute */
+.highlight .nb { color: #E6EDF3 } /* Name.Builtin */
+.highlight .nc { color: #F0883E; font-weight: bold } /* Name.Class */
+.highlight .no { color: #79C0FF; font-weight: bold } /* Name.Constant */
+.highlight .nd { color: #D2A8FF; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #FFA657 } /* Name.Entity */
+.highlight .ne { color: #F0883E; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #D2A8FF; font-weight: bold } /* Name.Function */
+.highlight .nl { color: #79C0FF; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #FF7B72 } /* Name.Namespace */
+.highlight .nx { color: #E6EDF3 } /* Name.Other */
+.highlight .py { color: #79C0FF } /* Name.Property */
+.highlight .nt { color: #7EE787 } /* Name.Tag */
+.highlight .nv { color: #79C0FF } /* Name.Variable */
+.highlight .ow { color: #FF7B72; font-weight: bold } /* Operator.Word */
+.highlight .pm { color: #E6EDF3 } /* Punctuation.Marker */
+.highlight .w { color: #6E7681 } /* Text.Whitespace */
+.highlight .mb { color: #A5D6FF } /* Literal.Number.Bin */
+.highlight .mf { color: #A5D6FF } /* Literal.Number.Float */
+.highlight .mh { color: #A5D6FF } /* Literal.Number.Hex */
+.highlight .mi { color: #A5D6FF } /* Literal.Number.Integer */
+.highlight .mo { color: #A5D6FF } /* Literal.Number.Oct */
+.highlight .sa { color: #79C0FF } /* Literal.String.Affix */
+.highlight .sb { color: #A5D6FF } /* Literal.String.Backtick */
+.highlight .sc { color: #A5D6FF } /* Literal.String.Char */
+.highlight .dl { color: #79C0FF } /* Literal.String.Delimiter */
+.highlight .sd { color: #A5D6FF } /* Literal.String.Doc */
+.highlight .s2 { color: #A5D6FF } /* Literal.String.Double */
+.highlight .se { color: #79C0FF } /* Literal.String.Escape */
+.highlight .sh { color: #79C0FF } /* Literal.String.Heredoc */
+.highlight .si { color: #A5D6FF } /* Literal.String.Interpol */
+.highlight .sx { color: #A5D6FF } /* Literal.String.Other */
+.highlight .sr { color: #79C0FF } /* Literal.String.Regex */
+.highlight .s1 { color: #A5D6FF } /* Literal.String.Single */
+.highlight .ss { color: #A5D6FF } /* Literal.String.Symbol */
+.highlight .bp { color: #E6EDF3 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #D2A8FF; font-weight: bold } /* Name.Function.Magic */
+.highlight .vc { color: #79C0FF } /* Name.Variable.Class */
+.highlight .vg { color: #79C0FF } /* Name.Variable.Global */
+.highlight .vi { color: #79C0FF } /* Name.Variable.Instance */
+.highlight .vm { color: #79C0FF } /* Name.Variable.Magic */
+.highlight .il { color: #A5D6FF } /* Literal.Number.Integer.Long */
+</style></head><body>
+<h1 class="heading">Fallback · 노동법 AI 상담</h1>
+<p class="subtitle">질문 범위·법령 근거·출처를 조건별로 검증하여 응답 경로 결정</p>
+<div class="editor"><div class="bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="filename">legal_consultation.py</span></div><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span>    <span class="k">def</span><span class="w"> </span><span class="nf">_route_after_retrieval</span><span class="p">(</span>
+        <span class="n">state</span><span class="p">:</span> <span class="n">LegalConsultationState</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;out_of_scope&quot;</span><span class="p">,</span> <span class="s2">&quot;insufficient&quot;</span><span class="p">,</span> <span class="s2">&quot;answer&quot;</span><span class="p">]:</span>
+        <span class="n">question</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;question&quot;</span><span class="p">]</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;history&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;matches&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">issues</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classified_issues&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">current_has_labor_term</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">question</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">LABOR_SCOPE_TERMS</span><span class="p">)</span>
+        <span class="n">current_has_other_domain</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">question</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">OUT_OF_SCOPE_TERMS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_has_other_domain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">current_has_labor_term</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;out_of_scope&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_labor_law_question</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">history</span><span class="p">)</span> <span class="ow">or</span> <span class="n">issues</span> <span class="ow">or</span> <span class="n">matches</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;out_of_scope&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;answer&quot;</span> <span class="k">if</span> <span class="n">matches</span> <span class="k">else</span> <span class="s2">&quot;insufficient&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_out_of_scope</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_state</span><span class="p">:</span> <span class="n">LegalConsultationState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">LegalChatResponse</span><span class="p">(</span>
+            <span class="n">answer</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;현재 상담은 임금, 근로시간, 휴일·휴가, 해고, 퇴직금 등 &quot;</span>
+                <span class="s2">&quot;대한민국 노동법 질문만 지원합니다.&quot;</span>
+            <span class="p">),</span>
+            <span class="n">legal_references</span><span class="o">=</span><span class="p">[],</span> <span class="n">warning</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">insufficient_evidence</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_insufficient_evidence</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_state</span><span class="p">:</span> <span class="n">LegalConsultationState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">LegalChatResponse</span><span class="p">(</span>
+            <span class="n">answer</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;질문과 충분히 관련된 노동관계 법령 근거를 찾지 못했습니다. &quot;</span>
+                <span class="s2">&quot;사실관계와 쟁점을 조금 더 구체적으로 입력하거나 전문가에게 확인해 주세요.&quot;</span>
+            <span class="p">),</span>
+            <span class="n">legal_references</span><span class="o">=</span><span class="p">[],</span> <span class="n">warning</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">insufficient_evidence</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_answer</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">LegalConsultationState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">_build_grounded_response</span><span class="p">(</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;question&quot;</span><span class="p">],</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;history&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">state</span><span class="p">[</span><span class="s2">&quot;search_query&quot;</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;matches&quot;</span><span class="p">],</span>
+        <span class="p">)}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_verify_sources</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">LegalConsultationState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;response&quot;</span><span class="p">]</span>
+        <span class="c1"># 생성 답변에서 실제 인용한 번호만 _build_grounded_response가 이미 선별한다.</span>
+        <span class="c1"># 이 노드는 잘못된 빈 출처 성공 응답이 외부로 나가지 않도록 최종 불변식을 보장한다.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">legal_references</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_insufficient_evidence</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">response</span><span class="p">}</span>
+</pre></div></td></tr></table></div>
+</div>
+</body></html>
