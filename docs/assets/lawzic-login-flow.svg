@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="900" viewBox="0 0 1800 900">
+  <rect width="1800" height="900" fill="#f7f9fb"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7f96a8"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: "Malgun Gothic", "Noto Sans KR", sans-serif; fill: #14263d; }
+    .title { font-size: 38px; font-weight: 700; }
+    .lane { font-size: 25px; font-weight: 700; fill: #ffffff; }
+    .head { font-size: 23px; font-weight: 700; }
+    .body { font-size: 19px; font-weight: 400; fill: #405469; }
+    .small { font-size: 17px; font-weight: 400; fill: #52677a; }
+    .line { stroke: #7f96a8; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .box { fill: #ffffff; stroke: #c5d2dc; stroke-width: 2; }
+    .soft { fill: #e6edf2; stroke: #9eb1c0; stroke-width: 2; }
+    .decision { fill: #eef3f6; stroke: #7891a5; stroke-width: 2; }
+  </style>
+
+  <text x="900" y="58" text-anchor="middle" class="title">LAWZIC 로그인 흐름도</text>
+
+  <rect x="55" y="98" width="210" height="58" rx="12" fill="#14263d"/>
+  <text x="160" y="136" text-anchor="middle" class="lane">일반 로그인</text>
+
+  <rect x="55" y="194" width="245" height="120" rx="14" class="box"/>
+  <text x="177" y="235" text-anchor="middle" class="head">로그인 정보 입력</text>
+  <text x="177" y="274" text-anchor="middle" class="body">이메일 · 비밀번호</text>
+
+  <rect x="370" y="194" width="270" height="120" rx="14" class="soft"/>
+  <text x="505" y="235" text-anchor="middle" class="head">React 요청</text>
+  <text x="505" y="274" text-anchor="middle" class="body">POST /api/auth/login</text>
+
+  <rect x="690" y="194" width="270" height="120" rx="14" class="box"/>
+  <text x="825" y="235" text-anchor="middle" class="head">회원 정보 조회</text>
+  <text x="825" y="274" text-anchor="middle" class="body">이메일로 users 검색</text>
+
+  <polygon points="1125,184 1270,254 1125,324 980,254" class="decision"/>
+  <text x="1125" y="246" text-anchor="middle" class="head">BCrypt 비밀번호</text>
+  <text x="1125" y="276" text-anchor="middle" class="body">일치 여부</text>
+
+  <rect x="1360" y="194" width="260" height="120" rx="14" class="box"/>
+  <text x="1490" y="235" text-anchor="middle" class="head">인증 실패</text>
+  <text x="1490" y="274" text-anchor="middle" class="body">401 오류 메시지</text>
+
+  <path class="line" d="M300 254 H370"/>
+  <path class="line" d="M640 254 H690"/>
+  <path class="line" d="M960 254 H980"/>
+  <path class="line" d="M1270 254 H1360"/>
+  <text x="1305" y="239" text-anchor="middle" class="small">불일치</text>
+
+  <rect x="55" y="410" width="210" height="58" rx="12" fill="#14263d"/>
+  <text x="160" y="448" text-anchor="middle" class="lane">소셜 로그인</text>
+
+  <rect x="55" y="506" width="245" height="120" rx="14" class="box"/>
+  <text x="177" y="547" text-anchor="middle" class="head">소셜 로그인 선택</text>
+  <text x="177" y="586" text-anchor="middle" class="body">Google · 네이버</text>
+
+  <rect x="370" y="506" width="270" height="120" rx="14" class="soft"/>
+  <text x="505" y="547" text-anchor="middle" class="head">OAuth 2.0 인증</text>
+  <text x="505" y="586" text-anchor="middle" class="body">제공자 로그인 · 동의</text>
+
+  <rect x="690" y="506" width="270" height="120" rx="14" class="box"/>
+  <text x="825" y="547" text-anchor="middle" class="head">Spring Security 콜백</text>
+  <text x="825" y="586" text-anchor="middle" class="body">사용자 정보 · 임시 티켓 생성</text>
+
+  <polygon points="1125,496 1270,566 1125,636 980,566" class="decision"/>
+  <text x="1125" y="558" text-anchor="middle" class="head">연결된 계정</text>
+  <text x="1125" y="588" text-anchor="middle" class="body">존재 여부</text>
+
+  <rect x="1360" y="485" width="330" height="162" rx="14" class="box"/>
+  <text x="1525" y="526" text-anchor="middle" class="head">계정 연결 또는 신규 등록</text>
+  <text x="1525" y="566" text-anchor="middle" class="body">기존 계정 비밀번호 확인</text>
+  <text x="1525" y="600" text-anchor="middle" class="body">또는 필수 약관 동의</text>
+
+  <path class="line" d="M300 566 H370"/>
+  <path class="line" d="M640 566 H690"/>
+  <path class="line" d="M960 566 H980"/>
+  <path class="line" d="M1270 566 H1360"/>
+  <text x="1310" y="550" text-anchor="middle" class="small">없음</text>
+
+  <rect x="690" y="735" width="420" height="105" rx="16" fill="#14263d"/>
+  <text x="900" y="777" text-anchor="middle" class="lane">JWT Access Token 발급</text>
+  <text x="900" y="812" text-anchor="middle" style="font-size:19px;fill:#ffffff">React 저장 → 인증 API 요청에 Bearer 토큰 전송</text>
+
+  <path class="line" d="M1125 324 V370 H1740 V688 H1040 V735"/>
+  <text x="1165" y="354" text-anchor="middle" class="small">일치</text>
+  <path class="line" d="M1125 636 V688 H900 V735"/>
+  <text x="1082" y="671" text-anchor="middle" class="small">존재</text>
+  <path class="line" d="M1525 647 V688 H1040 V735"/>
+
+  <rect x="1195" y="735" width="470" height="105" rx="16" class="soft"/>
+  <text x="1430" y="777" text-anchor="middle" class="head">로그인 완료</text>
+  <text x="1430" y="812" text-anchor="middle" class="body">메인 · 계약서 분석 · 상담 · 마이페이지 이용</text>
+  <path class="line" d="M1110 787 H1195"/>
+</svg>

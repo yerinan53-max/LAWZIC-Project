@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>분석 취소 API 500 오류 해결</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:1600px;background:#f3f6f8}
+body{padding:42px 52px 48px;font-family:"Malgun Gothic","Noto Sans KR",sans-serif;color:#14263d}
+.eyebrow{margin:0 0 8px;color:#47718f;font-size:17px;font-weight:700;letter-spacing:2px}
+h1{margin:0 0 8px;font-size:36px;letter-spacing:-1px}
+.subtitle{margin:0 0 24px;color:#5b6f80;font-size:20px}
+.editor{margin-top:18px;overflow:hidden;border:1px solid #31475e;border-radius:12px;background:#0d1117;box-shadow:0 10px 24px rgba(20,38,61,.13)}
+.bar{display:flex;align-items:center;gap:9px;height:44px;padding:0 16px;background:#172337;border-bottom:1px solid #33445a}
+.dot{width:11px;height:11px;border-radius:50%}.red{background:#ff6b6b}.yellow{background:#ffd166}.green{background:#4ecb71}
+.filename{margin-left:8px;color:#d0dbe6;font:16px Consolas,"D2Coding",monospace}
+.highlight{margin:0;padding:16px 24px;background:#0d1117}
+.highlight pre{margin:0;white-space:pre-wrap;font:17px/1.42 Consolas,"D2Coding",monospace;tab-size:4}
+pre { line-height: 125%; }
+td.linenos .normal { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #6e7681 }
+.highlight { background: #0d1117; color: #E6EDF3 }
+.highlight .c { color: #8B949E; font-style: italic } /* Comment */
+.highlight .err { color: #F85149 } /* Error */
+.highlight .esc { color: #E6EDF3 } /* Escape */
+.highlight .g { color: #E6EDF3 } /* Generic */
+.highlight .k { color: #FF7B72 } /* Keyword */
+.highlight .l { color: #A5D6FF } /* Literal */
+.highlight .n { color: #E6EDF3 } /* Name */
+.highlight .o { color: #FF7B72; font-weight: bold } /* Operator */
+.highlight .x { color: #E6EDF3 } /* Other */
+.highlight .p { color: #E6EDF3 } /* Punctuation */
+.highlight .ch { color: #8B949E; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #8B949E; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Preproc */
+.highlight .cpf { color: #8B949E; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #8B949E; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #FFA198; background-color: #490202 } /* Generic.Deleted */
+.highlight .ge { color: #E6EDF3; font-style: italic } /* Generic.Emph */
+.highlight .ges { color: #E6EDF3; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #FFA198 } /* Generic.Error */
+.highlight .gh { color: #79C0FF; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #56D364; background-color: #0F5323 } /* Generic.Inserted */
+.highlight .go { color: #8B949E } /* Generic.Output */
+.highlight .gp { color: #8B949E } /* Generic.Prompt */
+.highlight .gs { color: #E6EDF3; font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #79C0FF } /* Generic.Subheading */
+.highlight .gt { color: #FF7B72 } /* Generic.Traceback */
+.highlight .g-Underline { color: #E6EDF3; text-decoration: underline } /* Generic.Underline */
+.highlight .kc { color: #79C0FF } /* Keyword.Constant */
+.highlight .kd { color: #FF7B72 } /* Keyword.Declaration */
+.highlight .kn { color: #FF7B72 } /* Keyword.Namespace */
+.highlight .kp { color: #79C0FF } /* Keyword.Pseudo */
+.highlight .kr { color: #FF7B72 } /* Keyword.Reserved */
+.highlight .kt { color: #FF7B72 } /* Keyword.Type */
+.highlight .ld { color: #79C0FF } /* Literal.Date */
+.highlight .m { color: #A5D6FF } /* Literal.Number */
+.highlight .s { color: #A5D6FF } /* Literal.String */
+.highlight .na { color: #E6EDF3 } /* Name.Attribute */
+.highlight .nb { color: #E6EDF3 } /* Name.Builtin */
+.highlight .nc { color: #F0883E; font-weight: bold } /* Name.Class */
+.highlight .no { color: #79C0FF; font-weight: bold } /* Name.Constant */
+.highlight .nd { color: #D2A8FF; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #FFA657 } /* Name.Entity */
+.highlight .ne { color: #F0883E; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #D2A8FF; font-weight: bold } /* Name.Function */
+.highlight .nl { color: #79C0FF; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #FF7B72 } /* Name.Namespace */
+.highlight .nx { color: #E6EDF3 } /* Name.Other */
+.highlight .py { color: #79C0FF } /* Name.Property */
+.highlight .nt { color: #7EE787 } /* Name.Tag */
+.highlight .nv { color: #79C0FF } /* Name.Variable */
+.highlight .ow { color: #FF7B72; font-weight: bold } /* Operator.Word */
+.highlight .pm { color: #E6EDF3 } /* Punctuation.Marker */
+.highlight .w { color: #6E7681 } /* Text.Whitespace */
+.highlight .mb { color: #A5D6FF } /* Literal.Number.Bin */
+.highlight .mf { color: #A5D6FF } /* Literal.Number.Float */
+.highlight .mh { color: #A5D6FF } /* Literal.Number.Hex */
+.highlight .mi { color: #A5D6FF } /* Literal.Number.Integer */
+.highlight .mo { color: #A5D6FF } /* Literal.Number.Oct */
+.highlight .sa { color: #79C0FF } /* Literal.String.Affix */
+.highlight .sb { color: #A5D6FF } /* Literal.String.Backtick */
+.highlight .sc { color: #A5D6FF } /* Literal.String.Char */
+.highlight .dl { color: #79C0FF } /* Literal.String.Delimiter */
+.highlight .sd { color: #A5D6FF } /* Literal.String.Doc */
+.highlight .s2 { color: #A5D6FF } /* Literal.String.Double */
+.highlight .se { color: #79C0FF } /* Literal.String.Escape */
+.highlight .sh { color: #79C0FF } /* Literal.String.Heredoc */
+.highlight .si { color: #A5D6FF } /* Literal.String.Interpol */
+.highlight .sx { color: #A5D6FF } /* Literal.String.Other */
+.highlight .sr { color: #79C0FF } /* Literal.String.Regex */
+.highlight .s1 { color: #A5D6FF } /* Literal.String.Single */
+.highlight .ss { color: #A5D6FF } /* Literal.String.Symbol */
+.highlight .bp { color: #E6EDF3 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #D2A8FF; font-weight: bold } /* Name.Function.Magic */
+.highlight .vc { color: #79C0FF } /* Name.Variable.Class */
+.highlight .vg { color: #79C0FF } /* Name.Variable.Global */
+.highlight .vi { color: #79C0FF } /* Name.Variable.Instance */
+.highlight .vm { color: #79C0FF } /* Name.Variable.Magic */
+.highlight .il { color: #A5D6FF } /* Literal.Number.Integer.Long */
+</style></head><body>
+<p class="eyebrow">LAWZIC TROUBLESHOOTING</p>
+<h1>분석 취소 API 500 오류 해결</h1>
+<p class="subtitle">기존 DB 상태값과 호환되도록 취소 상태를 UPLOADED로 복귀</p>
+<section class="editor"><div class="bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="filename">Contract.java · 상태 모델</span></div><div class="highlight"><pre><span></span><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">Status</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">UPLOADED</span><span class="p">,</span><span class="w"> </span><span class="n">PROCESSING</span><span class="p">,</span><span class="w"> </span><span class="n">COMPLETED</span><span class="p">,</span><span class="w"> </span><span class="n">FAILED</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">markProcessing</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">PROCESSING</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">markCompleted</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">COMPLETED</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">markFailed</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">FAILED</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">markCancelled</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">UPLOADED</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</section><section class="editor"><div class="bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="filename">AnalysisService.java · 취소 처리</span></div><div class="highlight"><pre><span></span><span class="w">    </span><span class="nd">@Transactional</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">synchronized</span><span class="w"> </span><span class="n">Contract</span><span class="w"> </span><span class="nf">cancel</span><span class="p">(</span><span class="n">Long</span><span class="w"> </span><span class="n">contractId</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Contract</span><span class="w"> </span><span class="n">contract</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">contractService</span><span class="p">.</span><span class="na">owned</span><span class="p">(</span><span class="n">contractId</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">contract</span><span class="p">.</span><span class="na">getStatus</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">Contract</span><span class="p">.</span><span class="na">Status</span><span class="p">.</span><span class="na">PROCESSING</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// 완료/실패/이미 취소된 직후에 중복 요청이 도착해도 취소 API는 안전하게 응답한다.</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">contract</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="c1">// 실행 번호를 먼저 무효화해, interrupt를 무시하고 늦게 반환한 HTTP 호출도 결과를 저장하지 못하게 한다.</span>
+<span class="w">        </span><span class="n">activeRuns</span><span class="p">.</span><span class="na">remove</span><span class="p">(</span><span class="n">contractId</span><span class="p">);</span>
+<span class="w">        </span><span class="n">Future</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">job</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">jobs</span><span class="p">.</span><span class="na">remove</span><span class="p">(</span><span class="n">contractId</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">job</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="n">job</span><span class="p">.</span><span class="na">cancel</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+<span class="w">        </span><span class="n">contract</span><span class="p">.</span><span class="na">markCancelled</span><span class="p">();</span>
+<span class="w">        </span><span class="n">contracts</span><span class="p">.</span><span class="na">save</span><span class="p">(</span><span class="n">contract</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">contract</span><span class="p">;</span>
+</pre></div>
+</section>
+</body></html>

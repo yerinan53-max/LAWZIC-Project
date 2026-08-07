@@ -18,6 +18,10 @@ frontend/dist/
 tools/
 output/
 tmp/
+.ppt_build/
+*.inspect.ndjson
+~$*.pptx
+/package-lock.json
 
 # IDE / secrets
 .agents/

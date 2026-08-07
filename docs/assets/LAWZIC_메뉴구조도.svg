@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#15243A" flood-opacity=".12"/>
+    </filter>
+    <style>
+      text { font-family: "Malgun Gothic", "Noto Sans KR", sans-serif; }
+      .root { font-size: 34px; font-weight: 700; letter-spacing: 7px; fill: #FFFFFF; }
+      .head { font-size: 24px; font-weight: 700; fill: #FFFFFF; }
+      .item { font-size: 20px; font-weight: 500; }
+      .sub { font-size: 17px; fill: #627080; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="720" fill="#F7F8FA"/>
+  <text x="80" y="68" font-size="22" font-weight="700" letter-spacing="2" fill="#54738C">SYSTEM DESIGN</text>
+  <text x="80" y="108" font-size="32" font-weight="700">LAWZIC 메뉴 구조도</text>
+  <text x="80" y="140" class="sub">사용자 화면을 기준으로 구성한 주요 메뉴와 하위 기능</text>
+
+  <rect x="650" y="42" width="300" height="78" rx="39" fill="#15243A" filter="url(#shadow)"/>
+  <text x="800" y="92" text-anchor="middle" class="root">LAWZIC</text>
+
+  <path d="M800 120 V180 M180 180 H1420" stroke="#9AABB8" stroke-width="3" fill="none"/>
+  <path d="M180 180 V210 M490 180 V210 M800 180 V210 M1110 180 V210 M1420 180 V210"
+        stroke="#9AABB8" stroke-width="3" fill="none"/>
+
+  <!-- Main -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="210" width="260" height="410" rx="18" fill="#FFFFFF"/>
+    <rect x="50" y="210" width="260" height="76" rx="18" fill="#54738C"/>
+    <rect x="50" y="268" width="260" height="18" fill="#54738C"/>
+  </g>
+  <circle cx="92" cy="248" r="17" fill="#FFFFFF" opacity=".2"/>
+  <text x="92" y="255" text-anchor="middle" class="head">1</text>
+  <text x="128" y="256" class="head">메인</text>
+  <text x="78" y="334" class="item">서비스 소개</text>
+  <line x1="78" y1="356" x2="282" y2="356" stroke="#E1E6EA"/>
+  <text x="78" y="404" class="item">주요 기능 안내</text>
+  <line x1="78" y1="426" x2="282" y2="426" stroke="#E1E6EA"/>
+  <text x="78" y="474" class="item">분석 절차 안내</text>
+  <line x1="78" y1="496" x2="282" y2="496" stroke="#E1E6EA"/>
+  <text x="78" y="544" class="item">분석·상담 시작</text>
+
+  <!-- Auth -->
+  <g filter="url(#shadow)">
+    <rect x="360" y="210" width="260" height="410" rx="18" fill="#FFFFFF"/>
+    <rect x="360" y="210" width="260" height="76" rx="18" fill="#416D73"/>
+    <rect x="360" y="268" width="260" height="18" fill="#416D73"/>
+  </g>
+  <circle cx="402" cy="248" r="17" fill="#FFFFFF" opacity=".2"/>
+  <text x="402" y="255" text-anchor="middle" class="head">2</text>
+  <text x="438" y="256" class="head">회원·인증</text>
+  <text x="388" y="334" class="item">로그인·회원가입</text>
+  <line x1="388" y1="356" x2="592" y2="356" stroke="#E1E6EA"/>
+  <text x="388" y="404" class="item">Google·네이버 로그인</text>
+  <line x1="388" y1="426" x2="592" y2="426" stroke="#E1E6EA"/>
+  <text x="388" y="474" class="item">아이디 찾기</text>
+  <line x1="388" y1="496" x2="592" y2="496" stroke="#E1E6EA"/>
+  <text x="388" y="544" class="item">비밀번호 재설정</text>
+
+  <!-- Contracts -->
+  <g filter="url(#shadow)">
+    <rect x="670" y="210" width="260" height="410" rx="18" fill="#FFFFFF"/>
+    <rect x="670" y="210" width="260" height="76" rx="18" fill="#315D79"/>
+    <rect x="670" y="268" width="260" height="18" fill="#315D79"/>
+  </g>
+  <circle cx="712" cy="248" r="17" fill="#FFFFFF" opacity=".2"/>
+  <text x="712" y="255" text-anchor="middle" class="head">3</text>
+  <text x="748" y="256" class="head">계약서 분석실</text>
+  <text x="698" y="334" class="item">PDF 계약서 업로드</text>
+  <line x1="698" y1="356" x2="902" y2="356" stroke="#E1E6EA"/>
+  <text x="698" y="404" class="item">계약서 목록 관리</text>
+  <line x1="698" y1="426" x2="902" y2="426" stroke="#E1E6EA"/>
+  <text x="698" y="474" class="item">AI 분석 결과 조회</text>
+  <line x1="698" y1="496" x2="902" y2="496" stroke="#E1E6EA"/>
+  <text x="698" y="544" class="item">리포트 다운로드</text>
+
+  <!-- Consultation -->
+  <g filter="url(#shadow)">
+    <rect x="980" y="210" width="260" height="410" rx="18" fill="#FFFFFF"/>
+    <rect x="980" y="210" width="260" height="76" rx="18" fill="#59617E"/>
+    <rect x="980" y="268" width="260" height="18" fill="#59617E"/>
+  </g>
+  <circle cx="1022" cy="248" r="17" fill="#FFFFFF" opacity=".2"/>
+  <text x="1022" y="255" text-anchor="middle" class="head">4</text>
+  <text x="1058" y="256" class="head">노동법 AI 상담</text>
+  <text x="1008" y="334" class="item">노동법 질문 입력</text>
+  <line x1="1008" y1="356" x2="1212" y2="356" stroke="#E1E6EA"/>
+  <text x="1008" y="404" class="item">AI 답변 확인</text>
+  <line x1="1008" y1="426" x2="1212" y2="426" stroke="#E1E6EA"/>
+  <text x="1008" y="474" class="item">관련 법령 조회</text>
+  <line x1="1008" y1="496" x2="1212" y2="496" stroke="#E1E6EA"/>
+  <text x="1008" y="544" class="item">공식 출처 확인</text>
+
+  <!-- My Page -->
+  <g filter="url(#shadow)">
+    <rect x="1290" y="210" width="260" height="410" rx="18" fill="#FFFFFF"/>
+    <rect x="1290" y="210" width="260" height="76" rx="18" fill="#6C667A"/>
+    <rect x="1290" y="268" width="260" height="18" fill="#6C667A"/>
+  </g>
+  <circle cx="1332" cy="248" r="17" fill="#FFFFFF" opacity=".2"/>
+  <text x="1332" y="255" text-anchor="middle" class="head">5</text>
+  <text x="1368" y="256" class="head">마이페이지</text>
+  <text x="1318" y="334" class="item">회원정보 수정</text>
+  <line x1="1318" y1="356" x2="1522" y2="356" stroke="#E1E6EA"/>
+  <text x="1318" y="404" class="item">계약서 분석 이력</text>
+  <line x1="1318" y1="426" x2="1522" y2="426" stroke="#E1E6EA"/>
+  <text x="1318" y="474" class="item">AI 상담 이력</text>
+  <line x1="1318" y1="496" x2="1522" y2="496" stroke="#E1E6EA"/>
+  <text x="1318" y="544" class="item">회원 탈퇴</text>
+
+  <text x="80" y="674" class="sub">※ 로그인 후 계약서 분석실, 노동법 AI 상담, 마이페이지 메뉴를 이용할 수 있습니다.</text>
+</svg>
